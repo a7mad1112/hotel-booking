@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+      <UserSecretsId>ff58abff-0096-47cd-997f-5007096be7b5</UserSecretsId>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\HotelBooking.Application\HotelBooking.Application.csproj" />
+      <ProjectReference Include="..\HotelBooking.Infrastructure\HotelBooking.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Extensions\" />
+      <Folder Include="Features\Admin\" />
+      <Folder Include="Features\Authentication\" />
+      <Folder Include="Features\Bookings\" />
+      <Folder Include="Features\Hotels\" />
+      <Folder Include="Middleware\" />
+    </ItemGroup>
+
+</Project>
