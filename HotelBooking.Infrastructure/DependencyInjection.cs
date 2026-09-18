@@ -13,7 +13,7 @@ public static class DependencyInjection
                                ?? throw new InvalidOperationException(
                                    "Connection string `DefaultConnection` was not found");
 
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString));
         return services;
     }
