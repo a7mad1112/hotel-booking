@@ -26,7 +26,6 @@
       <Folder Include="Features\Authentication\" />
       <Folder Include="Features\Bookings\" />
       <Folder Include="Features\Hotels\" />
-      <Folder Include="Middleware\" />
     </ItemGroup>
 
 </Project>
