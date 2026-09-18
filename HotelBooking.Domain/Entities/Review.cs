@@ -1,13 +1,13 @@
-﻿namespace HotelBooking.Domain.Entities;
+﻿using HotelBooking.Domain.Common;
 
-public class Review
+namespace HotelBooking.Domain.Entities;
+
+public class Review : BaseEntity
 {
-    public int Id { get; set; }
     public int UserId { get; set; }
     public int HotelId { get; set; }
     public int Rating { get; set; }
     public string? Comment { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
 
     public User User { get; set; }
     public Hotel Hotel { get; set; }

@@ -1,11 +1,11 @@
 ﻿using System.Numerics;
+using HotelBooking.Domain.Common;
 using HotelBooking.Domain.Enums;
 
 namespace HotelBooking.Domain.Entities;
 
-public class Payment
+public class Payment : BaseEntity
 {
-    public int Id { get; set; }
     public int BookingId { get; set; }
     public string Provider { get; set; }
     public string TransactionId { get; set; } = null;

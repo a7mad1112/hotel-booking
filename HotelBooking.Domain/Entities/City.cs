@@ -1,18 +1,14 @@
-﻿namespace HotelBooking.Domain.Entities;
+﻿using HotelBooking.Domain.Common;
 
-public class City
+namespace HotelBooking.Domain.Entities;
+
+public class City : BaseEntity
 {
-    public int Id { get; set; }
-
     public string Name { get; set; } = string.Empty;
 
     public string Country { get; set; } = string.Empty;
 
     public string? PostalCode { get; set; }
-
-    public DateTimeOffset CreatedAt { get; set; }
-
-    public DateTimeOffset UpdatedAt { get; set; }
 
     public ICollection<Hotel> Hotels { get; set; } = [];
 }
