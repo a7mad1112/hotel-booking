@@ -1,4 +1,9 @@
+using HotelBooking.API.Middleware;
+using HotelBooking.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Add services to the container.
 
@@ -10,6 +15,9 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
