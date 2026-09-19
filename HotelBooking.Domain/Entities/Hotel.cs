@@ -11,8 +11,8 @@ public class Hotel : BaseEntity
     public decimal StarRating { get; set; }
     public string Location { get; set; } = string.Empty;
 
-    public City City { get; set; }
-    public User Owner { get; set; }
+    public City City { get; set; } = null!;
+    public User Owner { get; set; } = null!;
     public ICollection<Room> Rooms { get; set; } = [];
     public ICollection<Review> Reviews { get; set; } = [];
     public ICollection<HotelImage> Images { get; set; } = [];

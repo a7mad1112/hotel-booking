@@ -12,6 +12,6 @@ public class Room : BaseEntity
     public int ChildrenCapacity { get; set; }
     public bool Availability { get; set; }
 
-    public Hotel Hotel { get; set; }
+    public Hotel Hotel { get; set; } = null!;
     public ICollection<Booking> Bookings { get; set; } = [];
 }

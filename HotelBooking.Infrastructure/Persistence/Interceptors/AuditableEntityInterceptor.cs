@@ -25,7 +25,7 @@ public sealed class AuditableEntityInterceptor : SaveChangesInterceptor
     }
 
 
-    private static void UpdateTimestamps(DbContext context)
+    private static void UpdateTimestamps(DbContext? context)
     {
         if (context is null) return;
 

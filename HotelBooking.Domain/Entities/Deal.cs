@@ -8,5 +8,5 @@ public class Deal : BaseEntity
     public decimal DiscountPercentage { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public Hotel Hotel { get; set; }
+    public Hotel Hotel { get; set; } = null!;
 }

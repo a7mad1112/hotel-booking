@@ -9,6 +9,6 @@ public class Review : BaseEntity
     public int Rating { get; set; }
     public string? Comment { get; set; }
 
-    public User User { get; set; }
-    public Hotel Hotel { get; set; }
+    public User User { get; set; } = null!;
+    public Hotel Hotel { get; set; } = null!;
 }

@@ -70,7 +70,10 @@ public class AuditableEntityInterceptorTests : IAsyncLifetime
         var createdAt = city.CreatedAt;
         var originalUpdatedAt = city.UpdatedAt;
 
-        await Task.Delay(10);
+        while (DateTimeOffset.UtcNow <= originalUpdatedAt)
+        {
+            await Task.Delay(1);
+        }
 
         // Act
         city.Name = "Amman City";

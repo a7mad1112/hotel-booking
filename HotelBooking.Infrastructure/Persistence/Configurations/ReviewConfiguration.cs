@@ -13,7 +13,6 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.HasKey(r => r.Id);
 
         builder.Property(r => r.Rating)
-            .HasPrecision(2, 1)
             .IsRequired();
 
 

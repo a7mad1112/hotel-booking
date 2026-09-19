@@ -12,7 +12,7 @@ public class Booking : BaseEntity
     public decimal TotalPrice { get; set; }
     public BookingStatus Status { get; set; }
 
-    public User User { get; set; }
-    public Room Room { get; set; }
-    public Payment Payment { get; set; }
+    public User User { get; set; } = null!;
+    public Room Room { get; set; } = null!;
+    public Payment? Payment { get; set; }
 }
