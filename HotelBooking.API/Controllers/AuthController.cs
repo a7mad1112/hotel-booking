@@ -1,4 +1,5 @@
-﻿using HotelBooking.Application.Features.Authentication.Register;
+﻿using FluentValidation;
+using HotelBooking.Application.Features.Authentication.Register;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
@@ -8,10 +9,14 @@ namespace HotelBooking.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly RegisterService _registerService;
+    private readonly IValidator<RegisterRequest> _validator;
 
-    public AuthController(RegisterService registerService)
+    public AuthController(
+        RegisterService registerService,
+        IValidator<RegisterRequest> validator)
     {
         _registerService = registerService;
+        _validator = validator;
     }
 
     [HttpPost("register")]
@@ -19,6 +24,21 @@ public class AuthController : ControllerBase
         RegisterRequest request,
         CancellationToken cancellationToken)
     {
+        var validationResult =
+            await _validator.ValidateAsync(request, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            foreach (var error in validationResult.Errors)
+            {
+                ModelState.AddModelError(
+                    error.PropertyName,
+                    error.ErrorMessage);
+            }
+
+            return ValidationProblem(ModelState);
+        }
+
         var result = await _registerService.RegisterAsync(
             request.Email,
             request.Password,

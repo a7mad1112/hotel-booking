@@ -1,4 +1,5 @@
-﻿using HotelBooking.Application.Common.Results;
+﻿using HotelBooking.Application.Common.Exceptions;
+using HotelBooking.Application.Common.Results;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -25,6 +26,7 @@ public sealed class RegisterService
     {
         var normalizedEmail = email.Trim().ToLowerInvariant();
 
+        // Normal business validation / friendly response
         var exists = await _repository.EmailExistsAsync(
             normalizedEmail,
             cancellationToken);
@@ -49,8 +51,17 @@ public sealed class RegisterService
             user,
             cancellationToken);
 
-        await _repository.SaveChangesAsync(
-            cancellationToken);
+        try
+        {
+            await _repository.SaveChangesAsync(
+                cancellationToken);
+        }
+        // prevents race condition
+        catch (DuplicateEmailException)
+        {
+            return Result<User>.Failure(
+                "A user with this email already exists.");
+        }
 
         return Result<User>.Success(user);
     }

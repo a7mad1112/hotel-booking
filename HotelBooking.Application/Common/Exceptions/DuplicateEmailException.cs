@@ -1,0 +1,9 @@
+﻿namespace HotelBooking.Application.Common.Exceptions;
+
+public sealed class DuplicateEmailException : Exception
+{
+    public DuplicateEmailException()
+        : base("A user with this email already exists.")
+    {
+    }
+}

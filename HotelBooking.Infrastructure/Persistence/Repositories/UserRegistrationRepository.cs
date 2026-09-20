@@ -1,6 +1,8 @@
-﻿using HotelBooking.Application.Features.Authentication.Register;
+﻿using HotelBooking.Application.Common.Exceptions;
+using HotelBooking.Application.Features.Authentication.Register;
 using HotelBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
 
@@ -24,8 +26,23 @@ public class UserRegistrationRepository : IUserRegistrationRepository
         await _dbContext.Users.AddAsync(user, cancellationToken);
     }
 
-    public Task SaveChangesAsync(CancellationToken cancellationToken)
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
-        return _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+            when (IsDuplicateEmailViolation(ex))
+        {
+            throw new DuplicateEmailException();
+        }
+    }
+
+    private static bool IsDuplicateEmailViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is PostgresException postgresException
+               && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+               && postgresException.ConstraintName == "IX_users_Email";
     }
 }
