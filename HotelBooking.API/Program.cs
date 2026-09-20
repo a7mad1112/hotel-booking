@@ -1,8 +1,10 @@
 using HotelBooking.API.Middleware;
+using HotelBooking.Application;
 using HotelBooking.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Add services to the container.

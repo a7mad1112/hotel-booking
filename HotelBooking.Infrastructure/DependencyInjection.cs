@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HotelBooking.Application.Features.Authentication.Register;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using HotelBooking.Infrastructure.Persistence;
 using HotelBooking.Infrastructure.Persistence.Interceptors;
+using HotelBooking.Infrastructure.Persistence.Repositories;
 
 namespace HotelBooking.Infrastructure;
 
@@ -30,6 +32,9 @@ public static class DependencyInjection
             options.AddInterceptors(
                 serviceProvider.GetRequiredService<AuditableEntityInterceptor>());
         });
+
+        services.AddScoped<IUserRegistrationRepository,
+            UserRegistrationRepository>();
 
         return services;
     }
