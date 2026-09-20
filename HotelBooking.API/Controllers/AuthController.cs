@@ -1,6 +1,8 @@
-﻿using FluentValidation;
+﻿using System.Security.Claims;
+using FluentValidation;
 using HotelBooking.Application.Features.Authentication.Login;
 using HotelBooking.Application.Features.Authentication.Register;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
@@ -10,21 +12,68 @@ namespace HotelBooking.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly RegisterService _registerService;
-    private readonly IValidator<RegisterRequest> _registerValidator;
-
     private readonly LoginService _loginService;
+
+    private readonly IValidator<RegisterRequest> _registerValidator;
     private readonly IValidator<LoginRequest> _loginValidator;
 
     public AuthController(
         RegisterService registerService,
-        IValidator<RegisterRequest> registerValidator,
         LoginService loginService,
+        IValidator<RegisterRequest> registerValidator,
         IValidator<LoginRequest> loginValidator)
     {
         _registerService = registerService;
-        _registerValidator = registerValidator;
         _loginService = loginService;
+        _registerValidator = registerValidator;
         _loginValidator = loginValidator;
+    }
+
+    [HttpPost("register")]
+    public async Task<ActionResult<RegisterResponse>> Register(
+        RegisterRequest request,
+        CancellationToken cancellationToken)
+    {
+        var validationResult =
+            await _registerValidator.ValidateAsync(
+                request,
+                cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            foreach (var error in validationResult.Errors)
+            {
+                ModelState.AddModelError(
+                    error.PropertyName,
+                    error.ErrorMessage);
+            }
+
+            return ValidationProblem(ModelState);
+        }
+
+        var result = await _registerService.RegisterAsync(
+            request.Email,
+            request.Password,
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Conflict(new
+            {
+                statusCode = StatusCodes.Status409Conflict,
+                message = result.Error
+            });
+        }
+
+        var user = result.Value!;
+
+        return StatusCode(
+            StatusCodes.Status201Created,
+            new RegisterResponse
+            {
+                Id = user.Id,
+                Email = user.Email
+            });
     }
 
     [HttpPost("login")]
@@ -64,5 +113,17 @@ public class AuthController : ControllerBase
         }
 
         return Ok(result.Value);
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public ActionResult GetCurrentUser()
+    {
+        return Ok(new
+        {
+            id = User.FindFirstValue(ClaimTypes.NameIdentifier),
+            email = User.FindFirstValue(ClaimTypes.Email),
+            role = User.FindFirstValue(ClaimTypes.Role)
+        });
     }
 }
