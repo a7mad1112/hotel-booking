@@ -3,6 +3,7 @@ using HotelBooking.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
+using HotelBooking.Application.Features.Authentication.Login;
 
 namespace HotelBooking.Application;
 
@@ -12,6 +13,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<RegisterService>();
+        services.AddScoped<LoginService>();
         services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
         return services;
     }

@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using HotelBooking.Application.Features.Authentication.Login;
 using HotelBooking.Application.Features.Authentication.Register;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,23 +10,32 @@ namespace HotelBooking.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly RegisterService _registerService;
-    private readonly IValidator<RegisterRequest> _validator;
+    private readonly IValidator<RegisterRequest> _registerValidator;
+
+    private readonly LoginService _loginService;
+    private readonly IValidator<LoginRequest> _loginValidator;
 
     public AuthController(
         RegisterService registerService,
-        IValidator<RegisterRequest> validator)
+        IValidator<RegisterRequest> registerValidator,
+        LoginService loginService,
+        IValidator<LoginRequest> loginValidator)
     {
         _registerService = registerService;
-        _validator = validator;
+        _registerValidator = registerValidator;
+        _loginService = loginService;
+        _loginValidator = loginValidator;
     }
 
-    [HttpPost("register")]
-    public async Task<ActionResult<RegisterResponse>> Register(
-        RegisterRequest request,
+    [HttpPost("login")]
+    public async Task<ActionResult<LoginResponse>> Login(
+        LoginRequest request,
         CancellationToken cancellationToken)
     {
         var validationResult =
-            await _validator.ValidateAsync(request, cancellationToken);
+            await _loginValidator.ValidateAsync(
+                request,
+                cancellationToken);
 
         if (!validationResult.IsValid)
         {
@@ -39,28 +49,20 @@ public class AuthController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        var result = await _registerService.RegisterAsync(
+        var result = await _loginService.LoginAsync(
             request.Email,
             request.Password,
             cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Conflict(new
+            return Unauthorized(new
             {
-                statusCode = StatusCodes.Status409Conflict,
+                statusCode = StatusCodes.Status401Unauthorized,
                 message = result.Error
             });
         }
 
-        var user = result.Value!;
-
-        return StatusCode(
-            StatusCodes.Status201Created,
-            new RegisterResponse
-            {
-                Id = user.Id,
-                Email = user.Email
-            });
+        return Ok(result.Value);
     }
 }
