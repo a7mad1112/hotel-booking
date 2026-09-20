@@ -1,3 +1,4 @@
+using HotelBooking.API.Authorization;
 using HotelBooking.API.Extensions;
 using HotelBooking.API.Middleware;
 using HotelBooking.Application;
@@ -12,6 +13,9 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddJwtAuthentication(
     builder.Configuration,
     builder.Environment);
+
+// register policies
+builder.Services.AddHotelBookingAuthorization();
 
 // add swagger support for auth
 builder.Services.AddSwaggerGen(options =>
