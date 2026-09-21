@@ -7,18 +7,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\HotelBooking.Application\HotelBooking.Application.csproj"/>
-        <ProjectReference Include="..\HotelBooking.Domain\HotelBooking.Domain.csproj"/>
+        <ProjectReference Include="..\HotelBooking.Application\HotelBooking.Application.csproj" />
+        <ProjectReference Include="..\HotelBooking.Domain\HotelBooking.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Persistence\Migrations\"/>
-        <Folder Include="Services\"/>
+        <Folder Include="Persistence\Migrations\" />
+        <Folder Include="Services\" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.31"/>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.31" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
     </ItemGroup>
 
 </Project>

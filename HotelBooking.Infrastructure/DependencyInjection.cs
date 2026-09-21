@@ -1,4 +1,6 @@
-﻿using HotelBooking.Application.Features.Authentication.Register;
+﻿using HotelBooking.Application.Features.Authentication.Login;
+using HotelBooking.Application.Features.Authentication.Register;
+using HotelBooking.Infrastructure.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +37,13 @@ public static class DependencyInjection
 
         services.AddScoped<IUserRegistrationRepository,
             UserRegistrationRepository>();
+
+        services.AddScoped<IUserLoginRepository, UserLoginRepository>();
+
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+        services.Configure<JwtOptions>(
+            configuration.GetSection(JwtOptions.SectionName));
 
         return services;
     }
