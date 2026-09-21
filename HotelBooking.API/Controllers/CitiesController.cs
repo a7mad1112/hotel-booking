@@ -4,6 +4,7 @@ using HotelBooking.API.Extensions;
 using HotelBooking.Application.Features.Cities.CreateCity;
 using HotelBooking.Application.Features.Cities.DeleteCity;
 using HotelBooking.Application.Features.Cities.GetCities;
+using HotelBooking.Application.Features.Cities.GetCityById;
 using HotelBooking.Application.Features.Cities.UpdateCity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ public class CitiesController : ControllerBase
     private readonly GetCitiesService _getCitiesService;
     private readonly DeleteCityService _deleteCityService;
     private readonly UpdateCityService _updateCityService;
+    private readonly GetCityByIdService _getCityByIdService;
 
     private readonly IValidator<CreateCityRequest> _createCityRequestValidator;
     private readonly IValidator<UpdateCityRequest> _updateCityRequestValidator;
@@ -28,6 +30,7 @@ public class CitiesController : ControllerBase
         GetCitiesService getCitiesService,
         DeleteCityService deleteCityService,
         UpdateCityService updateCityService,
+        GetCityByIdService getCityByIdService,
         IValidator<CreateCityRequest> createCityRequestValidator,
         IValidator<UpdateCityRequest> updateCityRequestValidator)
     {
@@ -35,6 +38,7 @@ public class CitiesController : ControllerBase
         _getCitiesService = getCitiesService;
         _deleteCityService = deleteCityService;
         _updateCityService = updateCityService;
+        _getCityByIdService = getCityByIdService;
 
         _createCityRequestValidator = createCityRequestValidator;
         _updateCityRequestValidator = updateCityRequestValidator;
@@ -168,6 +172,29 @@ public class CitiesController : ControllerBase
 
 
             return Conflict(new
+            {
+                message = result.Error
+            });
+        }
+
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<GetCityByIdResponse>> GetById(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        var result =
+            await _getCityByIdService.GetAsync(
+                id,
+                cancellationToken);
+
+
+        if (!result.IsSuccess)
+        {
+            return NotFound(new
             {
                 message = result.Error
             });
