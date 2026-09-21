@@ -19,7 +19,7 @@ public sealed class RegisterService
         _passwordHasher = passwordHasher;
     }
 
-    public async Task<Result<User>> RegisterAsync(
+    public async Task<ResultOfT<User>> RegisterAsync(
         string email,
         string password,
         CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public sealed class RegisterService
 
         if (exists)
         {
-            return Result<User>.Failure(
+            return ResultOfT<User>.Failure(
                 "A user with this email already exists.");
         }
 
@@ -59,10 +59,10 @@ public sealed class RegisterService
         // prevents race condition
         catch (DuplicateEmailException)
         {
-            return Result<User>.Failure(
+            return ResultOfT<User>.Failure(
                 "A user with this email already exists.");
         }
 
-        return Result<User>.Success(user);
+        return ResultOfT<User>.Success(user);
     }
 }

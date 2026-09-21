@@ -1,5 +1,6 @@
 ﻿using HotelBooking.Application.Features.Authentication.Login;
 using HotelBooking.Application.Features.Authentication.Register;
+using HotelBooking.Application.Features.Cities;
 using HotelBooking.Infrastructure.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -44,6 +45,8 @@ public static class DependencyInjection
 
         services.Configure<JwtOptions>(
             configuration.GetSection(JwtOptions.SectionName));
+
+        services.AddScoped<ICitiesRepository, CitiesRepository>();
 
         return services;
     }

@@ -20,7 +20,7 @@ public sealed class LoginService
         _generator = generator;
     }
 
-    public async Task<Result<LoginResponse>> LoginAsync(string email, string password,
+    public async Task<ResultOfT<LoginResponse>> LoginAsync(string email, string password,
         CancellationToken cancellationToken)
     {
         var normalizedEmail = email.Trim().ToLowerInvariant();
@@ -29,7 +29,7 @@ public sealed class LoginService
 
         if (user is null)
         {
-            return Result<LoginResponse>.Failure(
+            return ResultOfT<LoginResponse>.Failure(
                 "Invalid email or password.");
         }
 
@@ -40,12 +40,12 @@ public sealed class LoginService
 
         if (verificationResult == PasswordVerificationResult.Failed)
         {
-            return Result<LoginResponse>.Failure("Invalid email or password.");
+            return ResultOfT<LoginResponse>.Failure("Invalid email or password.");
         }
 
         var token = _generator.Generate(user);
 
-        return Result<LoginResponse>.Success(
+        return ResultOfT<LoginResponse>.Success(
             new LoginResponse
             {
                 AccessToken = token.AccessToken,
