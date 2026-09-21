@@ -1,11 +1,12 @@
 ﻿using FluentValidation;
-using HotelBooking.Application.Features.Cities.CreateCity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using HotelBooking.API.Authorization;
+using HotelBooking.API.Extensions;
+using HotelBooking.Application.Features.Cities.CreateCity;
 using HotelBooking.Application.Features.Cities.DeleteCity;
 using HotelBooking.Application.Features.Cities.GetCities;
 using HotelBooking.Application.Features.Cities.UpdateCity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HotelBooking.API.Controllers;
 
@@ -20,6 +21,7 @@ public class CitiesController : ControllerBase
 
     private readonly IValidator<CreateCityRequest> _createCityRequestValidator;
     private readonly IValidator<UpdateCityRequest> _updateCityRequestValidator;
+
 
     public CitiesController(
         CreateCityService createCityService,
@@ -38,6 +40,7 @@ public class CitiesController : ControllerBase
         _updateCityRequestValidator = updateCityRequestValidator;
     }
 
+
     [Authorize(Policy = AuthorizationPolicies.ManageCities)]
     [HttpPost]
     public async Task<ActionResult<CreateCityResponse>> Create(
@@ -49,27 +52,27 @@ public class CitiesController : ControllerBase
                 request,
                 cancellationToken);
 
+
         if (!validation.IsValid)
         {
-            foreach (var error in validation.Errors)
-            {
-                ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
-            }
+            return this.ValidationProblem(validation);
         }
+
 
         var result =
             await _createCityService.CreateAsync(
                 request,
                 cancellationToken);
 
+
         if (!result.IsSuccess)
         {
-            return Conflict(
-                new
-                {
-                    message = result.Error
-                });
+            return Conflict(new
+            {
+                message = result.Error
+            });
         }
+
 
         return CreatedAtAction(
             nameof(Create),
@@ -80,13 +83,18 @@ public class CitiesController : ControllerBase
             result.Value);
     }
 
+
     [HttpGet]
-    public async Task<ActionResult<List<GetCitiesResponse>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<List<GetCitiesResponse>>> GetAll(
+        CancellationToken cancellationToken)
     {
-        var cities = await _getCitiesService.GetAllAsync(cancellationToken);
+        var cities =
+            await _getCitiesService.GetAllAsync(
+                cancellationToken);
 
         return Ok(cities);
     }
+
 
     [Authorize(Policy = AuthorizationPolicies.ManageCities)]
     [HttpDelete("{id:int}")]
@@ -96,7 +104,9 @@ public class CitiesController : ControllerBase
     {
         var result =
             await _deleteCityService.DeleteAsync(
-                id, cancellationToken);
+                id,
+                cancellationToken);
+
 
         if (!result.IsSuccess)
         {
@@ -108,14 +118,17 @@ public class CitiesController : ControllerBase
                 });
             }
 
+
             return BadRequest(new
             {
                 message = result.Error
             });
         }
 
+
         return NoContent();
     }
+
 
     [Authorize(Policy = AuthorizationPolicies.ManageCities)]
     [HttpPut("{id:int}")]
@@ -128,33 +141,38 @@ public class CitiesController : ControllerBase
             await _updateCityRequestValidator.ValidateAsync(
                 request,
                 cancellationToken);
-        
+
+
         if (!validation.IsValid)
         {
-            foreach (var error in validation.Errors)
-            {
-                ModelState.AddModelError(
-                    error.PropertyName,
-                    error.ErrorMessage);
-            }
-
-            return ValidationProblem(ModelState);
+            return this.ValidationProblem(validation);
         }
 
-        var result = await _updateCityService.UpdateAsync(id, request, cancellationToken);
+
+        var result =
+            await _updateCityService.UpdateAsync(
+                id,
+                request,
+                cancellationToken);
+
 
         if (!result.IsSuccess)
         {
             if (result.Error == "City not found.")
             {
-                return NotFound(new { message = result.Error });
+                return NotFound(new
+                {
+                    message = result.Error
+                });
             }
+
 
             return Conflict(new
             {
                 message = result.Error
             });
         }
+
 
         return Ok(result.Value);
     }
