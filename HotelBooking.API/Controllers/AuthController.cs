@@ -29,6 +29,7 @@ public class AuthController : ControllerBase
         _loginValidator = loginValidator;
     }
 
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<ActionResult<RegisterResponse>> Register(
         RegisterRequest request,
@@ -76,6 +77,7 @@ public class AuthController : ControllerBase
             });
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login(
         LoginRequest request,

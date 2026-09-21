@@ -33,12 +33,12 @@ public sealed class LoginService
                 "Invalid email or password.");
         }
 
-        var verficationResult = _passwordHasher.VerifyHashedPassword(
+        var verificationResult = _passwordHasher.VerifyHashedPassword(
             user,
             user.PasswordHash,
             password);
 
-        if (verficationResult == PasswordVerificationResult.Failed)
+        if (verificationResult == PasswordVerificationResult.Failed)
         {
             return Result<LoginResponse>.Failure("Invalid email or password.");
         }
