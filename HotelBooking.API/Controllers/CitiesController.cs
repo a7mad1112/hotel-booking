@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using HotelBooking.API.Authorization;
 using HotelBooking.API.Extensions;
+using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Cities.CreateCity;
 using HotelBooking.Application.Features.Cities.DeleteCity;
 using HotelBooking.Application.Features.Cities.GetCities;
@@ -89,11 +90,13 @@ public class CitiesController : ControllerBase
 
 
     [HttpGet]
-    public async Task<ActionResult<List<GetCitiesResponse>>> GetAll(
+    public async Task<ActionResult<PagedResult<GetCitiesResponse>>> GetAll(
+        [FromQuery] PaginationRequest request,
         CancellationToken cancellationToken)
     {
         var cities =
             await _getCitiesService.GetAllAsync(
+                request,
                 cancellationToken);
 
         return Ok(cities);

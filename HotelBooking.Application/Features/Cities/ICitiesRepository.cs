@@ -4,7 +4,10 @@ namespace HotelBooking.Application.Features.Cities;
 
 public interface ICitiesRepository
 {
-    Task<List<City>> GetAllAsync(CancellationToken cancellationToken);
+    Task<(List<City> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
 
     Task<City?> GetByIdAsync(int id, CancellationToken cancellationToken);
 

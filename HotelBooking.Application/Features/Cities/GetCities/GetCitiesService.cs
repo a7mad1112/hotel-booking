@@ -1,30 +1,48 @@
-﻿namespace HotelBooking.Application.Features.Cities.GetCities;
+﻿using HotelBooking.Application.Common.Pagination;
+using HotelBooking.Application.Features.Cities;
+
+namespace HotelBooking.Application.Features.Cities.GetCities;
 
 public sealed class GetCitiesService
 {
-    private readonly ICitiesRepository _citiesRepository;
+    private readonly ICitiesRepository _repository;
+
 
     public GetCitiesService(
-        ICitiesRepository citiesRepository)
+        ICitiesRepository repository)
     {
-        _citiesRepository = citiesRepository;
+        _repository = repository;
     }
 
-    public async Task<List<GetCitiesResponse>> GetAllAsync(
+
+    public async Task<PagedResult<GetCitiesResponse>> GetAllAsync(
+        PaginationRequest request,
         CancellationToken cancellationToken)
     {
-        var cities =
-            await _citiesRepository.GetAllAsync(cancellationToken);
+        var result =
+            await _repository.GetPagedAsync(
+                request.Page,
+                request.PageSize,
+                cancellationToken);
 
 
-        return cities
-            .Select(city => new GetCitiesResponse
-            {
-                Id = city.Id,
-                Name = city.Name,
-                Country = city.Country,
-                PostalCode = city.PostalCode
-            })
-            .ToList();
+        return new PagedResult<GetCitiesResponse>
+        {
+            Items = result.Items
+                .Select(city => new GetCitiesResponse
+                {
+                    Id = city.Id,
+                    Name = city.Name,
+                    Country = city.Country,
+                    PostalCode = city.PostalCode
+                })
+                .ToList(),
+
+            Page = request.Page,
+
+            PageSize = request.PageSize,
+
+            TotalCount = result.TotalCount
+        };
     }
 }

@@ -13,11 +13,29 @@ public class CitiesRepository : ICitiesRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<City>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<(List<City> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
     {
-        return await _dbContext.Cities
-            .OrderBy(x => x.Name)
-            .ToListAsync(cancellationToken);
+        var query = _dbContext.Cities
+            .AsNoTracking();
+
+        var totalCount =
+            await query.CountAsync(
+                cancellationToken);
+
+        var items =
+            await query
+                .OrderBy(x => x.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+        return (
+            items,
+            totalCount
+        );
     }
 
     public async Task<City?> GetByIdAsync(int id, CancellationToken cancellationToken)
