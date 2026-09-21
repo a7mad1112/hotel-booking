@@ -1,0 +1,19 @@
+﻿using HotelBooking.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace HotelBooking.Infrastructure.Persistence.Configurations;
+
+public class RoomTypeConfiguration : IEntityTypeConfiguration<RoomType>
+{
+    public void Configure(EntityTypeBuilder<RoomType> builder)
+    {
+        builder.ToTable("room_types");
+
+        builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.Name)
+            .IsRequired()
+            .HasMaxLength(100);
+    }
+}
