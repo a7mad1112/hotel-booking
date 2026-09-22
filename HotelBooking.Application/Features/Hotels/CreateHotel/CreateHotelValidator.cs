@@ -8,8 +8,8 @@ public class CreateHotelValidator
     public CreateHotelValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .MaximumLength(200);
+            .Must(name => !string.IsNullOrWhiteSpace(name))
+            .MaximumLength(50);
 
 
         RuleFor(x => x.CityId)
@@ -25,6 +25,7 @@ public class CreateHotelValidator
 
 
         RuleFor(x => x.Location)
-            .NotEmpty();
+            .Must(location => !string.IsNullOrWhiteSpace(location))
+            .MaximumLength(500);
     }
 }

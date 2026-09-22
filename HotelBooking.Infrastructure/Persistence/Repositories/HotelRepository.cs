@@ -2,6 +2,7 @@
 using HotelBooking.Application.Features.Hotels;
 using HotelBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using HotelBooking.Domain.Enums;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
 
@@ -78,7 +79,17 @@ public sealed class HotelRepository
     {
         return await DbContext.Users
             .AnyAsync(
-                x => x.Id == ownerId,
+                x => x.Id == ownerId && x.Role == UserRole.Owner,
                 cancellationToken);
+    }
+
+    public async Task<bool> HasDependenciesAsync(int hotelId, CancellationToken cancellationToken)
+    {
+        return await DbContext.Rooms.AnyAsync(
+                   x => x.HotelId == hotelId,
+                   cancellationToken)
+               || await DbContext.Reviews.AnyAsync(
+                   x => x.HotelId == hotelId,
+                   cancellationToken);
     }
 }

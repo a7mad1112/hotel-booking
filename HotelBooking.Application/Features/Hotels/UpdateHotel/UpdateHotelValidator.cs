@@ -8,8 +8,8 @@ public sealed class UpdateHotelValidator
     public UpdateHotelValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .MaximumLength(200);
+            .Must(name => !string.IsNullOrWhiteSpace(name))
+            .MaximumLength(50);
 
         RuleFor(x => x.CityId)
             .GreaterThan(0);
@@ -18,6 +18,7 @@ public sealed class UpdateHotelValidator
             .InclusiveBetween(0, 5);
 
         RuleFor(x => x.Location)
-            .NotEmpty();
+            .Must(location => !string.IsNullOrWhiteSpace(location))
+            .MaximumLength(500);
     }
 }

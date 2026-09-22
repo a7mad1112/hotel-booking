@@ -14,33 +14,31 @@ public sealed class DeleteHotelService : IScopedService
         _repository = repository;
     }
 
-    public async Task<Result> DeleteAsync(
-        int id,
-        int currentUserId,
-        bool isAdmin,
-        CancellationToken cancellationToken)
+    public async Task<Result> DeleteAsync(int id, int currentUserId, bool isAdmin, CancellationToken cancellationToken)
     {
         var hotel =
-            await _repository.GetByIdAsync(
-                id,
-                cancellationToken);
+            await _repository.GetByIdAsync(id, cancellationToken);
 
         if (hotel is null)
         {
-            return Result.Failure(
-                "Hotel not found.");
+            return Result.Failure("Hotel not found.");
         }
 
         if (!isAdmin && hotel.OwnerId != currentUserId)
         {
-            return Result.Failure(
-                "You are not allowed to delete this hotel.");
+            return Result.Failure("You are not allowed to delete this hotel.");
+        }
+
+        var hasDependencies = await _repository.HasDependenciesAsync(id, cancellationToken);
+
+        if (hasDependencies)
+        {
+            return Result.Failure("Cannot delete a hotel that has related data.");
         }
 
         _repository.Delete(hotel);
 
-        await _repository.SaveChangesAsync(
-            cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

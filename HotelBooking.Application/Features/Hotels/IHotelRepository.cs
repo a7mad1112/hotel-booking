@@ -15,4 +15,6 @@ public interface IHotelRepository : IRepository<Hotel>
         CancellationToken cancellationToken);
 
     Task<Hotel?> GetDetailsByIdAsync(int id, CancellationToken cancellationToken);
+
+    Task<bool> HasDependenciesAsync(int hotelId, CancellationToken cancellationToken);
 }

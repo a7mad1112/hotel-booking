@@ -140,10 +140,17 @@ public class HotelsController : ControllerBase
                 return NotFound(new { message = result.Error });
             }
 
-            if (result.Error ==
-                "You are not allowed to delete this hotel.")
+            if (result.Error == "You are not allowed to delete this hotel.")
             {
                 return Forbid();
+            }
+
+            if (result.Error == "Cannot delete a hotel that has related data.")
+            {
+                return Conflict(new
+                {
+                    message = result.Error
+                });
             }
 
             return BadRequest(new
