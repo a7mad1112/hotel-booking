@@ -1,6 +1,8 @@
-﻿using HotelBooking.API.Authorization;
+﻿using System.Security.Claims;
+using HotelBooking.API.Authorization;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Hotels.CreateHotel;
+using HotelBooking.Application.Features.Hotels.DeleteHotel;
 using HotelBooking.Application.Features.Hotels.GetHotelById;
 using HotelBooking.Application.Features.Hotels.GetHotels;
 using Microsoft.AspNetCore.Authorization;
@@ -15,15 +17,18 @@ public class HotelsController : ControllerBase
     private readonly CreateHotelService _createHotelService;
     private readonly GetHotelsService _getHotelsService;
     private readonly GetHotelByIdService _getHotelByIdService;
+    private readonly DeleteHotelService _deleteHotelService;
 
     public HotelsController(
         CreateHotelService createHotelService,
         GetHotelsService getHotelsService,
-        GetHotelByIdService getHotelByIdService)
+        GetHotelByIdService getHotelByIdService,
+        DeleteHotelService deleteHotelService)
     {
         _createHotelService = createHotelService;
         _getHotelsService = getHotelsService;
         _getHotelByIdService = getHotelByIdService;
+        _deleteHotelService = deleteHotelService;
     }
 
 
@@ -101,5 +106,48 @@ public class HotelsController : ControllerBase
         }
 
         return Ok(result.Value);
+    }
+
+    [Authorize]
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var currentUserId))
+        {
+            return Unauthorized();
+        }
+
+        var isAdmin = User.IsInRole("Admin");
+
+
+        var result = await _deleteHotelService.DeleteAsync(
+            id,
+            currentUserId,
+            isAdmin,
+            cancellationToken);
+
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Hotel not found.")
+            {
+                return NotFound(new { message = result.Error });
+            }
+
+            if (result.Error ==
+                "You are not allowed to delete this hotel.")
+            {
+                return Forbid();
+            }
+
+            return BadRequest(new
+            {
+                message = result.Error
+            });
+        }
+
+        return NoContent();
     }
 }
