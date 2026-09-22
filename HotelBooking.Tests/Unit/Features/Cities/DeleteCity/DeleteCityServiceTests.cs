@@ -46,9 +46,7 @@ public class DeleteCityServiceTests
 
 
         repository.Verify(
-            x => x.DeleteAsync(
-                city,
-                It.IsAny<CancellationToken>()),
+            x => x.Delete(city),
             Times.Once);
 
 
@@ -57,6 +55,7 @@ public class DeleteCityServiceTests
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
 
     [Fact]
     public async Task DeleteAsync_CityHasHotels_ReturnsFailure()
@@ -94,9 +93,8 @@ public class DeleteCityServiceTests
 
 
         repository.Verify(
-            x => x.DeleteAsync(
-                It.IsAny<City>(),
-                It.IsAny<CancellationToken>()),
+            x => x.Delete(
+                It.IsAny<City>()),
             Times.Never);
 
 

@@ -147,7 +147,7 @@ public class LoginServiceTests
             x => x.Generate(It.IsAny<User>()),
             Times.Never);
     }
-    
+
     [Fact]
     public async Task LoginAsync_EmailIsNormalized_BeforeRepositoryLookup()
     {

@@ -1,9 +1,10 @@
-﻿using HotelBooking.Application.Common.Results;
+﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Cities;
 
 namespace HotelBooking.Application.Features.Cities.GetCityById;
 
-public sealed class GetCityByIdService
+public sealed class GetCityByIdService : IScopedService
 {
     private readonly ICitiesRepository _citiesRepository;
 

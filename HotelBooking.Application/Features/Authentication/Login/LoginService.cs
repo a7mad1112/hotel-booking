@@ -1,10 +1,11 @@
-﻿using HotelBooking.Application.Common.Results;
+﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Results;
 using HotelBooking.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
 namespace HotelBooking.Application.Features.Authentication.Login;
 
-public sealed class LoginService
+public sealed class LoginService : IScopedService
 {
     private readonly IUserLoginRepository _repository;
     private readonly IJwtTokenGenerator _generator;

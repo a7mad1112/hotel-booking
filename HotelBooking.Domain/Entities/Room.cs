@@ -2,7 +2,7 @@
 
 namespace HotelBooking.Domain.Entities;
 
-public class Room : BaseEntity
+public class Room : AuditableEntity
 {
     public int HotelId { get; set; }
     public string RoomNumber { get; set; } = string.Empty;

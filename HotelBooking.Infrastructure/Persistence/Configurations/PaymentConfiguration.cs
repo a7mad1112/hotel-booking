@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Configurations.Extensions;
 
 namespace HotelBooking.Infrastructure.Persistence.Configurations;
 
@@ -33,5 +34,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .WithOne(x => x.Payment)
             .HasForeignKey<Payment>(x => x.BookingId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.ConfigureAuditProperties();
     }
 }

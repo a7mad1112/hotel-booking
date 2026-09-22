@@ -1,4 +1,5 @@
 ﻿using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Configurations.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,5 +21,7 @@ public class RoomImageConfiguration
             .WithMany(x => x.Images)
             .HasForeignKey(x => x.RoomId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.ConfigureAuditProperties();
     }
 }

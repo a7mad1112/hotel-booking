@@ -1,4 +1,5 @@
 ﻿using HotelBooking.Application.Common.Exceptions;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Authentication.Register;
 using HotelBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ using Npgsql;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
 
-public class UserRegistrationRepository : IUserRegistrationRepository
+public class UserRegistrationRepository : IUserRegistrationRepository, IScopedService
 {
     private readonly ApplicationDbContext _dbContext;
 

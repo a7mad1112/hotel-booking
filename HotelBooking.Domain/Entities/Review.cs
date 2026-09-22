@@ -2,7 +2,7 @@
 
 namespace HotelBooking.Domain.Entities;
 
-public class Review : BaseEntity
+public class Review : AuditableEntity
 {
     public int UserId { get; set; }
     public int HotelId { get; set; }

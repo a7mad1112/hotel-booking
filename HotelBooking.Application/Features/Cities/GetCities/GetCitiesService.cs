@@ -1,9 +1,10 @@
-﻿using HotelBooking.Application.Common.Pagination;
+﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Cities;
 
 namespace HotelBooking.Application.Features.Cities.GetCities;
 
-public sealed class GetCitiesService
+public sealed class GetCitiesService : IScopedService
 {
     private readonly ICitiesRepository _repository;
 

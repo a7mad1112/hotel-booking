@@ -3,7 +3,7 @@ using HotelBooking.Domain.Enums;
 
 namespace HotelBooking.Domain.Entities;
 
-public class Payment : BaseEntity
+public class Payment : AuditableEntity
 {
     public int BookingId { get; set; }
     public required string Provider { get; set; }

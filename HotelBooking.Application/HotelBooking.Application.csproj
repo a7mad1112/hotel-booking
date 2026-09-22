@@ -14,13 +14,13 @@
       <Folder Include="Features\Admin\" />
       <Folder Include="Features\Bookings\" />
       <Folder Include="Features\Hotels\" />
-      <Folder Include="Interfaces\" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="FluentValidation" Version="12.1.1" />
       <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
       <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.30" />
+      <PackageReference Include="Scrutor" Version="5.0.0" />
     </ItemGroup>
 
 </Project>

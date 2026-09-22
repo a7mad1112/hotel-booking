@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using HotelBooking.API.Authorization;
-using HotelBooking.API.Extensions;
+﻿using HotelBooking.API.Authorization;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Cities.CreateCity;
 using HotelBooking.Application.Features.Cities.DeleteCity;
@@ -22,27 +20,19 @@ public class CitiesController : ControllerBase
     private readonly UpdateCityService _updateCityService;
     private readonly GetCityByIdService _getCityByIdService;
 
-    private readonly IValidator<CreateCityRequest> _createCityRequestValidator;
-    private readonly IValidator<UpdateCityRequest> _updateCityRequestValidator;
-
 
     public CitiesController(
         CreateCityService createCityService,
         GetCitiesService getCitiesService,
         DeleteCityService deleteCityService,
         UpdateCityService updateCityService,
-        GetCityByIdService getCityByIdService,
-        IValidator<CreateCityRequest> createCityRequestValidator,
-        IValidator<UpdateCityRequest> updateCityRequestValidator)
+        GetCityByIdService getCityByIdService)
     {
         _createCityService = createCityService;
         _getCitiesService = getCitiesService;
         _deleteCityService = deleteCityService;
         _updateCityService = updateCityService;
         _getCityByIdService = getCityByIdService;
-
-        _createCityRequestValidator = createCityRequestValidator;
-        _updateCityRequestValidator = updateCityRequestValidator;
     }
 
 
@@ -52,18 +42,6 @@ public class CitiesController : ControllerBase
         CreateCityRequest request,
         CancellationToken cancellationToken)
     {
-        var validation =
-            await _createCityRequestValidator.ValidateAsync(
-                request,
-                cancellationToken);
-
-
-        if (!validation.IsValid)
-        {
-            return this.ValidationProblem(validation);
-        }
-
-
         var result =
             await _createCityService.CreateAsync(
                 request,
@@ -144,18 +122,6 @@ public class CitiesController : ControllerBase
         UpdateCityRequest request,
         CancellationToken cancellationToken)
     {
-        var validation =
-            await _updateCityRequestValidator.ValidateAsync(
-                request,
-                cancellationToken);
-
-
-        if (!validation.IsValid)
-        {
-            return this.ValidationProblem(validation);
-        }
-
-
         var result =
             await _updateCityService.UpdateAsync(
                 id,
@@ -183,6 +149,7 @@ public class CitiesController : ControllerBase
 
         return Ok(result.Value);
     }
+
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<GetCityByIdResponse>> GetById(

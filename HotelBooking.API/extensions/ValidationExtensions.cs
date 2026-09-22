@@ -1,22 +1,19 @@
-﻿using FluentValidation.Results;
-using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
 
 namespace HotelBooking.API.Extensions;
 
 public static class ValidationExtensions
 {
-    public static ActionResult ValidationProblem(
-        this ControllerBase controller,
-        ValidationResult validationResult)
+    public static IServiceCollection AddValidation(
+        this IServiceCollection services)
     {
-        foreach (var error in validationResult.Errors)
-        {
-            controller.ModelState.AddModelError(
-                error.PropertyName,
-                error.ErrorMessage);
-        }
+        services
+            .AddFluentValidationAutoValidation();
 
-        return controller.ValidationProblem(
-            controller.ModelState);
+        services.AddValidatorsFromAssemblyContaining<
+            HotelBooking.Application.AssemblyReference>();
+
+        return services;
     }
 }

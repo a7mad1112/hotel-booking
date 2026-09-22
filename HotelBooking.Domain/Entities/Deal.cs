@@ -2,7 +2,7 @@
 
 namespace HotelBooking.Domain.Entities;
 
-public class Deal : BaseEntity
+public class Deal : AuditableEntity
 {
     public int HotelId { get; set; }
     public decimal DiscountPercentage { get; set; }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Configurations.Extensions;
 
 
 namespace HotelBooking.Infrastructure.Persistence.Configurations;
@@ -32,5 +33,7 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
             .WithMany(x => x.Rooms)
             .HasForeignKey(x => x.HotelId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.ConfigureAuditProperties();
     }
 }

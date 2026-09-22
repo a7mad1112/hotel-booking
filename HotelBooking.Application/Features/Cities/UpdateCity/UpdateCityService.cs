@@ -1,8 +1,9 @@
-﻿using HotelBooking.Application.Common.Results;
+﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Results;
 
 namespace HotelBooking.Application.Features.Cities.UpdateCity;
 
-public sealed class UpdateCityService
+public sealed class UpdateCityService : IScopedService
 {
     private readonly ICitiesRepository _citiesRepository;
 
@@ -43,7 +44,7 @@ public sealed class UpdateCityService
 
         city.Name = name;
         city.Country = country;
-        city.PostalCode = request.PostalCode;
+        city.PostalCode = request.PostalCode?.Trim();
 
         await _citiesRepository.SaveChangesAsync(cancellationToken);
 
