@@ -4,7 +4,7 @@ using HotelBooking.Domain.Entities;
 
 namespace HotelBooking.Application.Features.Cities.CreateCity;
 
-public sealed class CreateCityService: IScopedService
+public sealed class CreateCityService : IScopedService
 {
     private readonly ICitiesRepository _citiesRepository;
 

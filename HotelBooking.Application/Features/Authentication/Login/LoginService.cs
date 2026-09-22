@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace HotelBooking.Application.Features.Authentication.Login;
 
-public sealed class LoginService: IScopedService
+public sealed class LoginService : IScopedService
 {
     private readonly IUserLoginRepository _repository;
     private readonly IJwtTokenGenerator _generator;
