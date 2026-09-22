@@ -1,10 +1,11 @@
-﻿using HotelBooking.Application.Features.Cities;
+﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Features.Cities;
 using HotelBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
 
-public class CitiesRepository : ICitiesRepository
+public class CitiesRepository : ICitiesRepository, IScopedService
 {
     private readonly ApplicationDbContext _dbContext;
 

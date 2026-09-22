@@ -1,9 +1,10 @@
-﻿using HotelBooking.Application.Common.Results;
+﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Results;
 using HotelBooking.Domain.Entities;
 
 namespace HotelBooking.Application.Features.Cities.CreateCity;
 
-public sealed class CreateCityService
+public sealed class CreateCityService: IScopedService
 {
     private readonly ICitiesRepository _citiesRepository;
 

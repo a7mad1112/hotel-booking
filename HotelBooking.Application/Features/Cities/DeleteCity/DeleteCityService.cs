@@ -1,8 +1,9 @@
-﻿using HotelBooking.Application.Common.Results;
+﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Results;
 
 namespace HotelBooking.Application.Features.Cities.DeleteCity;
 
-public sealed class DeleteCityService
+public sealed class DeleteCityService : IScopedService
 {
     private readonly ICitiesRepository _citiesRepository;
 

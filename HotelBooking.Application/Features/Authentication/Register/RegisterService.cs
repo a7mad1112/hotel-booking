@@ -1,4 +1,5 @@
 ﻿using HotelBooking.Application.Common.Exceptions;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace HotelBooking.Application.Features.Authentication.Register;
 
-public sealed class RegisterService
+public sealed class RegisterService : IScopedService
 {
     private readonly IUserRegistrationRepository _repository;
     private readonly IPasswordHasher<User> _passwordHasher;

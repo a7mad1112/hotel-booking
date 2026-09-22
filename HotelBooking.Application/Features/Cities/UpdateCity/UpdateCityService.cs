@@ -1,8 +1,9 @@
-﻿using HotelBooking.Application.Common.Results;
+﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Results;
 
 namespace HotelBooking.Application.Features.Cities.UpdateCity;
 
-public sealed class UpdateCityService
+public sealed class UpdateCityService : IScopedService
 {
     private readonly ICitiesRepository _citiesRepository;
 

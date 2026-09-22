@@ -1,13 +1,13 @@
-﻿using HotelBooking.Application.Features.Authentication.Login;
+﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Features.Authentication.Login;
 using HotelBooking.Application.Features.Authentication.Register;
 using HotelBooking.Application.Features.Cities;
 using HotelBooking.Infrastructure.Authentication;
+using HotelBooking.Infrastructure.Persistence;
+using HotelBooking.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using HotelBooking.Infrastructure.Persistence;
-using HotelBooking.Infrastructure.Persistence.Interceptors;
-using HotelBooking.Infrastructure.Persistence.Repositories;
 
 namespace HotelBooking.Infrastructure;
 
@@ -26,7 +26,9 @@ public static class DependencyInjection
                 "Connection string 'DefaultConnection' was not found.");
         }
 
+
         services.AddSingleton<AuditableEntityInterceptor>();
+
 
         services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
         {
@@ -36,17 +38,24 @@ public static class DependencyInjection
                 serviceProvider.GetRequiredService<AuditableEntityInterceptor>());
         });
 
-        services.AddScoped<IUserRegistrationRepository,
-            UserRegistrationRepository>();
 
-        services.AddScoped<IUserLoginRepository, UserLoginRepository>();
+        services.Scan(scan => scan
+            .FromAssemblyOf<AssemblyReference>()
+            .AddClasses(classes =>
+                classes.AssignableTo<IScopedService>())
+            .AsImplementedInterfaces()
+            .WithScopedLifetime()
+            .AddClasses(classes =>
+                classes.AssignableTo<ISingletonService>())
+            .AsImplementedInterfaces()
+            .WithSingletonLifetime()
+        );
 
-        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
         services.Configure<JwtOptions>(
-            configuration.GetSection(JwtOptions.SectionName));
+            configuration.GetSection(
+                JwtOptions.SectionName));
 
-        services.AddScoped<ICitiesRepository, CitiesRepository>();
 
         return services;
     }
