@@ -5,6 +5,7 @@ using HotelBooking.Application.Features.Hotels.CreateHotel;
 using HotelBooking.Application.Features.Hotels.DeleteHotel;
 using HotelBooking.Application.Features.Hotels.GetHotelById;
 using HotelBooking.Application.Features.Hotels.GetHotels;
+using HotelBooking.Application.Features.Hotels.UpdateHotel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,17 +19,20 @@ public class HotelsController : ControllerBase
     private readonly GetHotelsService _getHotelsService;
     private readonly GetHotelByIdService _getHotelByIdService;
     private readonly DeleteHotelService _deleteHotelService;
+    private readonly UpdateHotelService _updateHotelService;
 
     public HotelsController(
         CreateHotelService createHotelService,
         GetHotelsService getHotelsService,
         GetHotelByIdService getHotelByIdService,
-        DeleteHotelService deleteHotelService)
+        DeleteHotelService deleteHotelService,
+        UpdateHotelService updateHotelService)
     {
         _createHotelService = createHotelService;
         _getHotelsService = getHotelsService;
         _getHotelByIdService = getHotelByIdService;
         _deleteHotelService = deleteHotelService;
+        _updateHotelService = updateHotelService;
     }
 
 
@@ -149,5 +153,66 @@ public class HotelsController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    [Authorize]
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<UpdateHotelResponse>> Update(
+        int id,
+        UpdateHotelRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userIdClaim =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(
+                userIdClaim,
+                out var currentUserId))
+        {
+            return Unauthorized();
+        }
+
+        var isAdmin =
+            User.IsInRole("Admin");
+
+        var result =
+            await _updateHotelService.UpdateAsync(
+                id,
+                request,
+                currentUserId,
+                isAdmin,
+                cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Hotel not found.")
+            {
+                return NotFound(new
+                {
+                    message = result.Error
+                });
+            }
+
+            if (result.Error ==
+                "You are not allowed to update this hotel.")
+            {
+                return Forbid();
+            }
+
+            if (result.Error == "City not found.")
+            {
+                return BadRequest(new
+                {
+                    message = result.Error
+                });
+            }
+
+            return Conflict(new
+            {
+                message = result.Error
+            });
+        }
+
+        return Ok(result.Value);
     }
 }
