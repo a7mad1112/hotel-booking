@@ -4,6 +4,7 @@ using HotelBooking.Application.Features.Authentication.Login;
 using HotelBooking.Application.Features.Authentication.Register;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -42,14 +43,7 @@ public class AuthController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            foreach (var error in validationResult.Errors)
-            {
-                ModelState.AddModelError(
-                    error.PropertyName,
-                    error.ErrorMessage);
-            }
-
-            return ValidationProblem(ModelState);
+            return this.ValidationProblem(validationResult);
         }
 
         var result = await _registerService.RegisterAsync(
@@ -90,14 +84,7 @@ public class AuthController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            foreach (var error in validationResult.Errors)
-            {
-                ModelState.AddModelError(
-                    error.PropertyName,
-                    error.ErrorMessage);
-            }
-
-            return ValidationProblem(ModelState);
+            return this.ValidationProblem(validationResult);
         }
 
         var result = await _loginService.LoginAsync(

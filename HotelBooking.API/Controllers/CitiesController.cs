@@ -80,7 +80,7 @@ public class CitiesController : ControllerBase
 
 
         return CreatedAtAction(
-            nameof(Create),
+            nameof(GetById),
             new
             {
                 id = result.Value!.Id

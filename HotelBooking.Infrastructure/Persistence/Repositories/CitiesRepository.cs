@@ -28,6 +28,8 @@ public class CitiesRepository : ICitiesRepository
         var items =
             await query
                 .OrderBy(x => x.Name)
+                .ThenBy(x => x.Country)
+                .ThenBy(x => x.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
@@ -69,12 +71,14 @@ public class CitiesRepository : ICitiesRepository
         return Task.CompletedTask;
     }
 
-    public async Task<bool> HasHotelsAsync(int cityId, CancellationToken cancellationToken)
+    public async Task<bool> HasHotelsAsync(
+        int cityId,
+        CancellationToken cancellationToken)
     {
         return await _dbContext.Hotels.AnyAsync(
-            x => x.Id == cityId, cancellationToken);
+            x => x.CityId == cityId,
+            cancellationToken);
     }
-
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
