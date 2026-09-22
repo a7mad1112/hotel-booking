@@ -19,12 +19,13 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<RegisterService>();
         services.AddScoped<LoginService>();
-        services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
         services.AddScoped<CreateCityService>();
         services.AddScoped<GetCitiesService>();
         services.AddScoped<DeleteCityService>();
         services.AddScoped<UpdateCityService>();
         services.AddScoped<GetCityByIdService>();
+
+        services.AddValidatorsFromAssemblyContaining<AssemblyReference>();
         return services;
     }
 }
