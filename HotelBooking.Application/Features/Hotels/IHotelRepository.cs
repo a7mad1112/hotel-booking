@@ -9,7 +9,10 @@ public interface IHotelRepository : IRepository<Hotel>
 
     Task<bool> OwnerExistsAsync(int ownerId, CancellationToken cancellationToken);
 
-    Task<Hotel?> GetDetailsByIdAsync(int id, CancellationToken cancellationToken);
+    Task<(List<Hotel> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
 
-    Task<List<Hotel>> GetDetailsAsync(CancellationToken cancellationToken);
+    Task<Hotel?> GetDetailsByIdAsync(int id, CancellationToken cancellationToken);
 }

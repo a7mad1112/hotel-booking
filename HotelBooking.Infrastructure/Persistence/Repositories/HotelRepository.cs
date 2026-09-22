@@ -15,26 +15,49 @@ public sealed class HotelRepository
     }
 
 
+    public async Task<(List<Hotel> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = DbContext.Hotels
+            .AsNoTracking()
+            .Include(x => x.City)
+            .Include(x => x.Owner);
+
+
+        var totalCount =
+            await query.CountAsync(
+                cancellationToken);
+
+
+        var items =
+            await query
+                .OrderBy(x => x.Name)
+                .ThenBy(x => x.City.Name)
+                .ThenBy(x => x.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+
+        return (
+            items,
+            totalCount);
+    }
+
+
     public async Task<Hotel?> GetDetailsByIdAsync(
         int id,
         CancellationToken cancellationToken)
     {
         return await DbContext.Hotels
+            .AsNoTracking()
             .Include(x => x.City)
             .Include(x => x.Owner)
             .FirstOrDefaultAsync(
                 x => x.Id == id,
                 cancellationToken);
-    }
-
-
-    public async Task<List<Hotel>> GetDetailsAsync(
-        CancellationToken cancellationToken)
-    {
-        return await DbContext.Hotels
-            .Include(x => x.City)
-            .Include(x => x.Owner)
-            .ToListAsync(cancellationToken);
     }
 
 

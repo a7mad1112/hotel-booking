@@ -1,5 +1,7 @@
 ﻿using HotelBooking.API.Authorization;
+using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Hotels.CreateHotel;
+using HotelBooking.Application.Features.Hotels.GetHotels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,12 +12,15 @@ namespace HotelBooking.API.Controllers;
 public class HotelsController : ControllerBase
 {
     private readonly CreateHotelService _createHotelService;
+    private readonly GetHotelsService _getHotelsService;
 
 
     public HotelsController(
-        CreateHotelService createHotelService)
+        CreateHotelService createHotelService,
+        GetHotelsService getHotelsService)
     {
         _createHotelService = createHotelService;
+        _getHotelsService = getHotelsService;
     }
 
 
@@ -60,12 +65,27 @@ public class HotelsController : ControllerBase
     }
 
 
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<GetHotelsResponse>>> GetAll(
+        [FromQuery] PaginationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var hotels =
+            await _getHotelsService.GetAllAsync(
+                request,
+                cancellationToken);
+
+
+        return Ok(hotels);
+    }
+
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(
         int id,
         CancellationToken cancellationToken)
     {
-        // implement later
+        // Implement in the next slice.
         return Ok();
     }
 }
