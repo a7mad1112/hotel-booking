@@ -1,4 +1,5 @@
 ﻿using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Configurations.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,5 +22,7 @@ public class AmenityConfiguration : IEntityTypeConfiguration<Amenity>
 
         builder.HasIndex(x => x.Name)
             .IsUnique();
+
+        builder.ConfigureAuditProperties();
     }
 }

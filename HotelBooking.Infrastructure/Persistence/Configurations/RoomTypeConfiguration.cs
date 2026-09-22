@@ -1,4 +1,5 @@
 ﻿using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Configurations.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,5 +16,7 @@ public class RoomTypeConfiguration : IEntityTypeConfiguration<RoomType>
         builder.Property(x => x.Name)
             .IsRequired()
             .HasMaxLength(100);
+
+        builder.ConfigureAuditProperties();
     }
 }

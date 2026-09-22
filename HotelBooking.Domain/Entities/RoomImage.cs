@@ -2,7 +2,7 @@
 
 namespace HotelBooking.Domain.Entities;
 
-public class RoomImage : BaseEntity
+public class RoomImage : AuditableEntity
 {
     public int RoomId { get; set; }
     public required string ImageUrl { get; set; }

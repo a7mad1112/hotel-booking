@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Configurations.Extensions;
 
 namespace HotelBooking.Infrastructure.Persistence.Configurations;
 
@@ -24,5 +25,7 @@ public class HotelImageConfiguration : IEntityTypeConfiguration<HotelImage>
         builder.Property(x => x.PublicId)
             .IsRequired()
             .HasMaxLength(500);
+
+        builder.ConfigureAuditProperties();
     }
 }

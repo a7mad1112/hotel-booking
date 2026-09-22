@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Configurations.Extensions;
 
 namespace HotelBooking.Infrastructure.Persistence.Configurations;
 
@@ -28,5 +29,7 @@ public class CityConfiguration : IEntityTypeConfiguration<City>
             c.Name,
             c.Country
         }).IsUnique();
+
+        builder.ConfigureAuditProperties();
     }
 }

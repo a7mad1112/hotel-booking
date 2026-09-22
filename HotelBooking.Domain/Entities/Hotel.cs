@@ -2,7 +2,7 @@
 
 namespace HotelBooking.Domain.Entities;
 
-public class Hotel : BaseEntity
+public class Hotel : AuditableEntity
 {
     public int CityId { get; set; }
     public int OwnerId { get; set; }

@@ -3,7 +3,7 @@ using HotelBooking.Domain.Enums;
 
 namespace HotelBooking.Domain.Entities;
 
-public class User : BaseEntity
+public class User : AuditableEntity
 {
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
