@@ -1,6 +1,7 @@
 ﻿using HotelBooking.API.Authorization;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Hotels.CreateHotel;
+using HotelBooking.Application.Features.Hotels.GetHotelById;
 using HotelBooking.Application.Features.Hotels.GetHotels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,14 +14,16 @@ public class HotelsController : ControllerBase
 {
     private readonly CreateHotelService _createHotelService;
     private readonly GetHotelsService _getHotelsService;
-
+    private readonly GetHotelByIdService _getHotelByIdService;
 
     public HotelsController(
         CreateHotelService createHotelService,
-        GetHotelsService getHotelsService)
+        GetHotelsService getHotelsService,
+        GetHotelByIdService getHotelByIdService)
     {
         _createHotelService = createHotelService;
         _getHotelsService = getHotelsService;
+        _getHotelByIdService = getHotelByIdService;
     }
 
 
@@ -81,11 +84,22 @@ public class HotelsController : ControllerBase
 
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(
+    public async Task<ActionResult<GetHotelByIdResponse>> GetById(
         int id,
         CancellationToken cancellationToken)
     {
-        // Implement in the next slice.
-        return Ok();
+        var result =
+            await _getHotelByIdService.GetAsync(
+                id,
+                cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return NotFound(new
+            {
+                message = result.Error
+            });
+        }
+
+        return Ok(result.Value);
     }
 }
