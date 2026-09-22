@@ -17,4 +17,5 @@ public class Hotel : BaseEntity
     public ICollection<Review> Reviews { get; set; } = [];
     public ICollection<HotelImage> Images { get; set; } = [];
     public ICollection<Deal> Deals { get; set; } = [];
+    public ICollection<HotelAmenity> HotelAmenities { get; set; } = [];
 }
