@@ -13,7 +13,6 @@
     <ItemGroup>
       <Folder Include="Features\Admin\" />
       <Folder Include="Features\Bookings\" />
-      <Folder Include="Features\Hotels\" />
     </ItemGroup>
 
     <ItemGroup>
