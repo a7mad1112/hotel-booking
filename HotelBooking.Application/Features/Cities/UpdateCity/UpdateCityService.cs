@@ -44,7 +44,7 @@ public sealed class UpdateCityService : IScopedService
 
         city.Name = name;
         city.Country = country;
-        city.PostalCode = request.PostalCode;
+        city.PostalCode = request.PostalCode?.Trim();
 
         await _citiesRepository.SaveChangesAsync(cancellationToken);
 

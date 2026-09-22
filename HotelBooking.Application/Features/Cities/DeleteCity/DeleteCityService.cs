@@ -34,7 +34,7 @@ public sealed class DeleteCityService : IScopedService
                 "Cannot delete a city that has hotels.");
         }
 
-        await _citiesRepository.DeleteAsync(city, cancellationToken);
+        _citiesRepository.Delete(city);
 
         await _citiesRepository.SaveChangesAsync(cancellationToken);
 

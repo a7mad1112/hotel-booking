@@ -5,6 +5,7 @@ using HotelBooking.Application.Features.Cities;
 using HotelBooking.Infrastructure.Authentication;
 using HotelBooking.Infrastructure.Persistence;
 using HotelBooking.Infrastructure.Persistence.Interceptors;
+using HotelBooking.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,9 @@ public static class DependencyInjection
                 serviceProvider.GetRequiredService<AuditableEntityInterceptor>());
         });
 
+        services.AddScoped(
+            typeof(IRepository<>),
+            typeof(Repository<>));
 
         services.Scan(scan => scan
             .FromAssemblyOf<AssemblyReference>()
