@@ -8,6 +8,9 @@ using HotelBooking.Application.Features.Hotels.GetHotels;
 using HotelBooking.Application.Features.Hotels.UpdateHotel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HotelBooking.Application.Common.Images;
+using HotelBooking.Application.Features.Hotels.DeleteHotelImage;
+using HotelBooking.Application.Features.Hotels.UploadHotelImage;
 
 namespace HotelBooking.API.Controllers;
 
@@ -21,18 +24,26 @@ public class HotelsController : ControllerBase
     private readonly DeleteHotelService _deleteHotelService;
     private readonly UpdateHotelService _updateHotelService;
 
+    private readonly UploadHotelImageService _uploadHotelImageService;
+    private readonly DeleteHotelImageService _deleteHotelImageService;
+
     public HotelsController(
         CreateHotelService createHotelService,
         GetHotelsService getHotelsService,
         GetHotelByIdService getHotelByIdService,
         DeleteHotelService deleteHotelService,
-        UpdateHotelService updateHotelService)
+        UpdateHotelService updateHotelService,
+        UploadHotelImageService uploadHotelImageService,
+        DeleteHotelImageService deleteHotelImageService)
     {
         _createHotelService = createHotelService;
         _getHotelsService = getHotelsService;
         _getHotelByIdService = getHotelByIdService;
         _deleteHotelService = deleteHotelService;
         _updateHotelService = updateHotelService;
+
+        _uploadHotelImageService = uploadHotelImageService;
+        _deleteHotelImageService = deleteHotelImageService;
     }
 
 
@@ -221,5 +232,113 @@ public class HotelsController : ControllerBase
         }
 
         return Ok(result.Value);
+    }
+
+    [Authorize]
+    [HttpPost("{hotelId:int}/images")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<UploadHotelImageResponse>> UploadImage(
+        int hotelId,
+        IFormFile file,
+        CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var currentUserId))
+        {
+            return Unauthorized();
+        }
+
+        if (file.Length == 0)
+        {
+            return BadRequest(new
+            {
+                message = "Image cannot be empty."
+            });
+        }
+
+        await using var stream = file.OpenReadStream();
+
+        var request = new UploadHotelImageRequest
+        {
+            Image = new ImageUpload
+            {
+                Content = stream,
+                FileName = file.FileName,
+                ContentType = file.ContentType
+            }
+        };
+
+        var result = await _uploadHotelImageService.UploadAsync(
+            hotelId,
+            request,
+            currentUserId,
+            User.IsInRole("Admin"),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Hotel not found.")
+            {
+                return NotFound(new
+                {
+                    message = result.Error
+                });
+            }
+
+            if (result.Error == "You are not allowed to upload images for this hotel.")
+            {
+                return Forbid();
+            }
+
+            return BadRequest(new
+            {
+                message = result.Error
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    [Authorize]
+    [HttpDelete("{hotelId:int}/images/{imageId:int}")]
+    public async Task<IActionResult> DeleteImage(int hotelId, int imageId, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var currentUserId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _deleteHotelImageService.DeleteAsync(
+            hotelId,
+            imageId,
+            currentUserId,
+            User.IsInRole("Admin"),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Hotel not found." || result.Error == "Hotel image not found.")
+            {
+                return NotFound(new
+                {
+                    message = result.Error
+                });
+            }
+
+            if (result.Error == "You are not allowed to delete images for this hotel.")
+            {
+                return Forbid();
+            }
+
+            return BadRequest(new
+            {
+                message = result.Error
+            });
+        }
+
+        return NoContent();
     }
 }
