@@ -4,6 +4,7 @@ using HotelBooking.Application.Features.Cities.CreateCity;
 using HotelBooking.Application.Features.Cities.DeleteCity;
 using HotelBooking.Application.Features.Cities.GetCities;
 using HotelBooking.Application.Features.Cities.GetCityById;
+using HotelBooking.Application.Features.Cities.GetTrendingCities;
 using HotelBooking.Application.Features.Cities.UpdateCity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,22 +20,23 @@ public class CitiesController : ControllerBase
     private readonly DeleteCityService _deleteCityService;
     private readonly UpdateCityService _updateCityService;
     private readonly GetCityByIdService _getCityByIdService;
-
+    private readonly GetTrendingCitiesService _getTrendingCitiesService;
 
     public CitiesController(
         CreateCityService createCityService,
         GetCitiesService getCitiesService,
         DeleteCityService deleteCityService,
         UpdateCityService updateCityService,
-        GetCityByIdService getCityByIdService)
+        GetCityByIdService getCityByIdService,
+        GetTrendingCitiesService getTrendingCitiesService)
     {
         _createCityService = createCityService;
         _getCitiesService = getCitiesService;
         _deleteCityService = deleteCityService;
         _updateCityService = updateCityService;
         _getCityByIdService = getCityByIdService;
+        _getTrendingCitiesService = getTrendingCitiesService;
     }
-
 
     [Authorize(Policy = AuthorizationPolicies.ManageCities)]
     [HttpPost]
@@ -114,7 +116,6 @@ public class CitiesController : ControllerBase
         return NoContent();
     }
 
-
     [Authorize(Policy = AuthorizationPolicies.ManageCities)]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<UpdateCityResponse>> Update(
@@ -150,6 +151,13 @@ public class CitiesController : ControllerBase
         return Ok(result.Value);
     }
 
+    [HttpGet("trending")]
+    public async Task<ActionResult<List<GetTrendingCitiesResponse>>> GetTrending(CancellationToken cancellationToken)
+    {
+        var cities = await _getTrendingCitiesService.GetAsync(cancellationToken);
+
+        return Ok(cities);
+    }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<GetCityByIdResponse>> GetById(
