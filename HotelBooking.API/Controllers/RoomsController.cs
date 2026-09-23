@@ -1,11 +1,15 @@
 ﻿using System.Security.Claims;
 using HotelBooking.API.Authorization;
+using HotelBooking.API.Features.Rooms.UploadRoomImage;
+using HotelBooking.Application.Common.Images;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Rooms.CreateRoom;
 using HotelBooking.Application.Features.Rooms.DeleteRoom;
+using HotelBooking.Application.Features.Rooms.DeleteRoomImage;
 using HotelBooking.Application.Features.Rooms.GetRoomById;
 using HotelBooking.Application.Features.Rooms.GetRooms;
 using HotelBooking.Application.Features.Rooms.UpdateRoom;
+using HotelBooking.Application.Features.Rooms.UploadRoomImage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,15 +25,22 @@ public class RoomsController : ControllerBase
     private readonly UpdateRoomService _updateRoomService;
     private readonly GetRoomByIdService _getRoomByIdService;
 
+    private readonly UploadRoomImageService _uploadRoomImageService;
+    private readonly DeleteRoomImageService _deleteRoomImageService;
+
     public RoomsController(CreateRoomService createRoomService, GetRoomsService getRoomsService,
         DeleteRoomService deleteRoomService, UpdateRoomService updateRoomService,
-        GetRoomByIdService getRoomByIdService)
+        GetRoomByIdService getRoomByIdService, UploadRoomImageService uploadRoomImageService,
+        DeleteRoomImageService deleteRoomImageService)
     {
         _createRoomService = createRoomService;
         _getRoomsService = getRoomsService;
         _deleteRoomService = deleteRoomService;
         _updateRoomService = updateRoomService;
         _getRoomByIdService = getRoomByIdService;
+
+        _uploadRoomImageService = uploadRoomImageService;
+        _deleteRoomImageService = deleteRoomImageService;
     }
 
     [HttpGet("{id:int}")]
@@ -190,5 +201,102 @@ public class RoomsController : ControllerBase
         }
 
         return StatusCode(StatusCodes.Status201Created, result.Value);
+    }
+
+    [Authorize]
+    [HttpPost("{roomId:int}/images")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<UploadRoomImageResponse>> UploadImage(
+        int roomId,
+        [FromForm] UploadRoomImageRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var currentUserId))
+        {
+            return Unauthorized();
+        }
+
+        await using var stream = request.Image.OpenReadStream();
+
+        var image = new ImageUpload()
+        {
+            Content = stream,
+            FileName = request.Image.FileName,
+            ContentType = request.Image.ContentType
+        };
+
+        var result = await _uploadRoomImageService.UploadAsync(
+            roomId,
+            image,
+            currentUserId,
+            User.IsInRole("Admin"),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Room not found.")
+            {
+                return NotFound(new
+                {
+                    message = result.Error
+                });
+            }
+
+            if (result.Error == "You are not allowed to upload images for this room.")
+            {
+                return Forbid();
+            }
+
+            return BadRequest(new
+            {
+                message = result.Error
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    [Authorize]
+    [HttpDelete("{roomId:int}/images/{imageId:int}")]
+    public async Task<IActionResult> DeleteImage(int roomId, int imageId, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var currentUserId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _deleteRoomImageService.DeleteAsync(
+            roomId,
+            imageId,
+            currentUserId,
+            User.IsInRole("Admin"),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Room not found." || result.Error == "Room image not found.")
+            {
+                return NotFound(new
+                {
+                    message = result.Error
+                });
+            }
+
+            if (result.Error == "You are not allowed to delete images for this room.")
+            {
+                return Forbid();
+            }
+
+            return BadRequest(new
+            {
+                message = result.Error
+            });
+        }
+
+        return NoContent();
     }
 }
