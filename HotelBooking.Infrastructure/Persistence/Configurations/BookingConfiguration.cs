@@ -32,6 +32,9 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         // faster querying for trending cities
         builder.HasIndex(x => x.RoomId);
 
+        // faster querying for booking history
+        builder.HasIndex(x => x.UserId);
+
         builder.Property(x => x.CheckInDate)
             .IsRequired();
 
