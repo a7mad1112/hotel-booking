@@ -12,6 +12,9 @@ public sealed class GetHotelByIdResponse
     public string CityName { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
 
+    public int OwnerId { get; set; }
+    public string OwnerEmail { get; set; } = string.Empty;
+
     public List<HotelImageResponse> Images { get; set; } = [];
     public List<HotelRoomResponse> Rooms { get; set; } = [];
     public List<HotelReviewResponse> Reviews { get; set; } = [];

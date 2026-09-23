@@ -35,6 +35,9 @@ public sealed class GetHotelByIdService : IScopedService
                 CityName = hotel.City.Name,
                 Country = hotel.City.Country,
 
+                OwnerId = hotel.OwnerId,
+                OwnerEmail = hotel.Owner.Email,
+
                 Images = hotel.Images
                     .Select(image => new HotelImageResponse
                     {
