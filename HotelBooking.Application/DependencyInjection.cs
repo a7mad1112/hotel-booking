@@ -8,20 +8,15 @@ namespace HotelBooking.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplicationServices(
-        this IServiceCollection services)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
         services.Scan(scan => scan
             .FromAssembliesOf(typeof(AssemblyReference))
-            .AddClasses(classes =>
-                classes.AssignableTo<IScopedService>())
+            .AddClasses(classes => classes.AssignableTo<IScopedService>())
             .AsSelf()
             .WithScopedLifetime());
-
-
-        services.AddValidatorsFromAssemblyContaining<AssemblyReference>();
 
         return services;
     }

@@ -1,7 +1,6 @@
 ﻿using HotelBooking.Application.Common.Images;
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
-using HotelBooking.Application.Features.Hotels;
 using HotelBooking.Domain.Entities;
 
 namespace HotelBooking.Application.Features.Hotels.UploadHotelImage;
@@ -24,7 +23,7 @@ public sealed class UploadHotelImageService : IScopedService
 
     public async Task<ResultOfT<UploadHotelImageResponse>> UploadAsync(
         int hotelId,
-        UploadHotelImageRequest request,
+        ImageUpload image,
         int currentUserId,
         bool isAdmin,
         CancellationToken cancellationToken)
@@ -41,12 +40,7 @@ public sealed class UploadHotelImageService : IScopedService
             return ResultOfT<UploadHotelImageResponse>.Failure("You are not allowed to upload images for this hotel.");
         }
 
-        if (request.Image.Content.Length == 0)
-        {
-            return ResultOfT<UploadHotelImageResponse>.Failure("Image cannot be empty.");
-        }
-
-        var uploadResult = await _imageService.UploadAsync(request.Image, ImageFolders.Hotels, cancellationToken);
+        var uploadResult = await _imageService.UploadAsync(image, ImageFolders.Hotels, cancellationToken);
 
         var hotelImage = new HotelImage
         {
@@ -69,7 +63,7 @@ public sealed class UploadHotelImageService : IScopedService
             }
             catch
             {
-                // original database exception
+                // original database exception.
             }
 
             throw;

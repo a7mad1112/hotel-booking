@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using HotelBooking.API.Authorization;
+using HotelBooking.API.Features.Hotels.UploadHotelImage;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Hotels.CreateHotel;
 using HotelBooking.Application.Features.Hotels.DeleteHotel;
@@ -239,42 +240,37 @@ public class HotelsController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<UploadHotelImageResponse>> UploadImage(
         int hotelId,
-        IFormFile file,
+        [FromForm] UploadHotelImageRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userIdClaim =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!int.TryParse(
+                userIdClaim,
+                out var currentUserId))
         {
             return Unauthorized();
         }
 
-        if (file.Length == 0)
-        {
-            return BadRequest(new
-            {
-                message = "Image cannot be empty."
-            });
-        }
+        var image = request.Image!;
 
-        await using var stream = file.OpenReadStream();
+        await using var stream = image.OpenReadStream();
 
-        var request = new UploadHotelImageRequest
+        var imageUpload = new ImageUpload
         {
-            Image = new ImageUpload
-            {
-                Content = stream,
-                FileName = file.FileName,
-                ContentType = file.ContentType
-            }
+            Content = stream,
+            FileName = image.FileName,
+            ContentType = image.ContentType
         };
 
-        var result = await _uploadHotelImageService.UploadAsync(
-            hotelId,
-            request,
-            currentUserId,
-            User.IsInRole("Admin"),
-            cancellationToken);
+        var result =
+            await _uploadHotelImageService.UploadAsync(
+                hotelId,
+                imageUpload,
+                currentUserId,
+                User.IsInRole("Admin"),
+                cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -286,7 +282,8 @@ public class HotelsController : ControllerBase
                 });
             }
 
-            if (result.Error == "You are not allowed to upload images for this hotel.")
+            if (result.Error ==
+                "You are not allowed to upload images for this hotel.")
             {
                 return Forbid();
             }

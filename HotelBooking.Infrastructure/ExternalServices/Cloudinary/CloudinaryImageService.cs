@@ -72,9 +72,8 @@ public sealed class CloudinaryImageService : IImageService, IScopedService
             throw new InvalidOperationException("Cloudinary upload succeeded but did not return a public ID.");
         }
 
-        var url = result.SecureUrl?.ToString()
-                  ?? result.Url?.ToString();
-
+        var url = result.SecureUrl?.ToString();
+        
         if (string.IsNullOrWhiteSpace(url))
         {
             throw new InvalidOperationException("Cloudinary upload succeeded but did not return an image URL.");

@@ -26,11 +26,16 @@ public class CloudinaryImageServiceTests
         var image = new ImageUpload
         {
             Content = stream,
-            FileName = "test.jpg"
+            FileName = "test.jpg",
+            ContentType = "image/jpeg"
         };
 
         // Act
-        var act = () => service.UploadAsync(image, "test", CancellationToken.None);
+        var act = () =>
+            service.UploadAsync(
+                image,
+                "test",
+                CancellationToken.None);
 
         // Assert
         await Assert.ThrowsAsync<ArgumentException>(act);
