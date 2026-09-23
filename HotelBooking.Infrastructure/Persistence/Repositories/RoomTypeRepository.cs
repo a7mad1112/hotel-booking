@@ -11,29 +11,29 @@ public sealed class RoomTypeRepository : Repository<RoomType>, IRoomTypeReposito
     {
     }
 
-    public async Task<bool> HasRoomsAsync(int roomTypeId, CancellationToken cancellationToken)
-    {
-        return await DbContext.Rooms.AnyAsync(x => x.RoomTypeId == roomTypeId, cancellationToken);
-    }
-
-    public async Task<(List<Room> Items, int TotalCount)> GetPagedAsync(
+    public async Task<(List<RoomType> Items, int TotalCount)> GetPagedAsync(
         int page,
         int pageSize,
         CancellationToken cancellationToken)
     {
-        var query = DbContext.Rooms
-            .AsNoTracking()
-            .Include(x => x.Hotel)
-            .Include(x => x.RoomType);
+        var query = DbContext.RoomTypes
+            .AsNoTracking();
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var items = await query.OrderBy(x => x.RoomNumber)
+        var items = await query
+            .OrderBy(x => x.Name)
             .ThenBy(x => x.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);
+    }
+
+    public async Task<bool> HasRoomsAsync(int roomTypeId, CancellationToken cancellationToken)
+    {
+        return await DbContext.Rooms
+            .AnyAsync(x => x.RoomTypeId == roomTypeId, cancellationToken);
     }
 }

@@ -2,6 +2,7 @@
 using HotelBooking.Application.Features.Rooms;
 using HotelBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
 
@@ -60,5 +61,26 @@ public sealed class RoomRepository : Repository<Room>, IRoomRepository, IScopedS
     public async Task<bool> HasBookingsAsync(int roomId, CancellationToken cancellationToken)
     {
         return await DbContext.Bookings.AnyAsync(x => x.RoomId == roomId, cancellationToken);
+    }
+
+    public async Task<Room?> GetForUpdateAsync(int id, CancellationToken cancellationToken)
+    {
+        return await DbContext.Rooms
+            .Include(x => x.Hotel)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    private static bool IsDuplicateRoomNumberViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is PostgresException postgresException
+               && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+               && postgresException.ConstraintName ==
+               "IX_rooms_HotelId_RoomNumber";
+    }
+
+    public async Task<bool> RoomNumberExistsAsync(int hotelId, string roomNumber, CancellationToken cancellationToken)
+    {
+        return await DbContext.Rooms
+            .AnyAsync(x => x.HotelId == hotelId && x.RoomNumber == roomNumber, cancellationToken);
     }
 }

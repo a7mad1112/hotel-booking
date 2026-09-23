@@ -10,27 +10,21 @@ public class Repository<TEntity> : IRepository<TEntity>, IScopedService
     protected readonly ApplicationDbContext DbContext;
 
 
-    public Repository(
-        ApplicationDbContext dbContext)
+    public Repository(ApplicationDbContext dbContext)
     {
         DbContext = dbContext;
     }
 
 
-    public async Task<TEntity?> GetByIdAsync(
-        int id,
-        CancellationToken cancellationToken)
+    public async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await DbContext
             .Set<TEntity>()
-            .FirstOrDefaultAsync(
-                x => x.Id == id,
-                cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
 
-    public async Task<List<TEntity>> GetAllAsync(
-        CancellationToken cancellationToken)
+    public async Task<List<TEntity>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await DbContext
             .Set<TEntity>()
@@ -38,40 +32,28 @@ public class Repository<TEntity> : IRepository<TEntity>, IScopedService
     }
 
 
-    public async Task AddAsync(
-        TEntity entity,
-        CancellationToken cancellationToken)
+    public async Task AddAsync(TEntity entity, CancellationToken cancellationToken)
     {
         await DbContext
             .Set<TEntity>()
-            .AddAsync(
-                entity,
-                cancellationToken);
+            .AddAsync(entity, cancellationToken);
     }
 
 
-    public void Update(
-        TEntity entity)
+    public void Update(TEntity entity)
     {
-        DbContext
-            .Set<TEntity>()
-            .Update(entity);
+        DbContext.Set<TEntity>().Update(entity);
     }
 
 
-    public void Delete(
-        TEntity entity)
+    public void Delete(TEntity entity)
     {
-        DbContext
-            .Set<TEntity>()
-            .Remove(entity);
+        DbContext.Set<TEntity>().Remove(entity);
     }
 
 
-    public async Task SaveChangesAsync(
-        CancellationToken cancellationToken)
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
-        await DbContext
-            .SaveChangesAsync(cancellationToken);
+        await DbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -36,12 +36,11 @@ public class RoomTypesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<GetRoomsResponse>>> GetAll(
+    public async Task<ActionResult<PagedResult<GetRoomTypesResponse>>> GetAll(
         [FromQuery] PaginationRequest request,
         CancellationToken cancellationToken)
     {
         var result = await _getRoomTypesService.GetAllAsync(request, cancellationToken);
-
         return Ok(result);
     }
 

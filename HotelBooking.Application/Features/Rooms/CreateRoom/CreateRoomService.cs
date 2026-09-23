@@ -1,4 +1,5 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+﻿using HotelBooking.Application.Common.Exceptions;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Hotels;
 using HotelBooking.Domain.Entities;
@@ -41,10 +42,19 @@ public sealed class CreateRoomService : IScopedService
             return ResultOfT<CreateRoomResponse>.Failure("Room type not found.");
         }
 
+        var roomNumber = request.RoomNumber.Trim();
+
+        var roomNumberExists = await _repository.RoomNumberExistsAsync(request.HotelId, roomNumber, cancellationToken);
+
+        if (roomNumberExists)
+        {
+            return ResultOfT<CreateRoomResponse>.Failure("Room number already exists in this hotel.");
+        }
+
         var room = new Room
         {
             HotelId = request.HotelId,
-            RoomNumber = request.RoomNumber.Trim(),
+            RoomNumber = roomNumber,
             RoomTypeId = request.RoomTypeId,
             PricePerNight = request.PricePerNight,
             AdultsCapacity = request.AdultsCapacity,
@@ -54,7 +64,16 @@ public sealed class CreateRoomService : IScopedService
 
         await _repository.AddAsync(room, cancellationToken);
 
-        await _repository.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _repository.SaveChangesAsync(cancellationToken);
+        }
+        catch (DuplicateRoomNumberException)
+        {
+            // handle the race condition where another request
+            // creates the same room number after our existence check.
+            return ResultOfT<CreateRoomResponse>.Failure("Room number already exists in this hotel.");
+        }
 
         return ResultOfT<CreateRoomResponse>.Success(
             new CreateRoomResponse
