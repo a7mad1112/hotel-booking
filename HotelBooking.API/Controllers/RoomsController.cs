@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
 using HotelBooking.API.Authorization;
+using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Rooms.CreateRoom;
+using HotelBooking.Application.Features.Rooms.GetRooms;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +13,21 @@ namespace HotelBooking.API.Controllers;
 public class RoomsController : ControllerBase
 {
     private readonly CreateRoomService _createRoomService;
+    private readonly GetRoomsService _getRoomsService;
 
-    public RoomsController(CreateRoomService createRoomService)
+    public RoomsController(CreateRoomService createRoomService, GetRoomsService getRoomsService)
     {
         _createRoomService = createRoomService;
+        _getRoomsService = getRoomsService;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<GetRoomsResponse>>> GetAll(
+        [FromQuery] PaginationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var rooms = await _getRoomsService.GetAllAsync(request, cancellationToken);
+        return Ok(rooms);
     }
 
     [Authorize(Policy = AuthorizationPolicies.ManageRooms)]
