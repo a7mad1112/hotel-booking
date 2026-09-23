@@ -13,4 +13,6 @@ public interface IDealRepository : IRepository<Deal>
 
     Task<bool> HasOverlappingDealAsync(int hotelId, DateTime startDate, DateTime endDate, int? excludedDealId,
         CancellationToken cancellationToken);
+
+    Task<List<Deal>> GetFeaturedAsync(DateTime now, int limit, CancellationToken cancellationToken);
 }

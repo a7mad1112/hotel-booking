@@ -60,4 +60,20 @@ public sealed class DealRepository : Repository<Deal>, IDealRepository, IScopedS
                     && startDate < x.EndDate,
                 cancellationToken);
     }
+
+    public async Task<List<Deal>> GetFeaturedAsync(DateTime now, int limit, CancellationToken cancellationToken)
+    {
+        return await DbContext.Deals
+            .AsNoTracking()
+            .Include(x => x.Hotel)
+            .ThenInclude(x => x.Images)
+            .Include(x => x.Hotel)
+            .ThenInclude(x => x.Rooms)
+            .Where(x => x.StartDate <= now && now < x.EndDate && x.Hotel.Rooms.Any(room => room.Availability))
+            .OrderByDescending(x => x.DiscountPercentage)
+            .ThenBy(x => x.EndDate)
+            .ThenBy(x => x.Id)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+    }
 }

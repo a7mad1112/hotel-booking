@@ -10,6 +10,7 @@ using HotelBooking.Application.Features.Hotels.UpdateHotel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using HotelBooking.Application.Common.Images;
+using HotelBooking.Application.Features.Deals.GetFeaturedDeals;
 using HotelBooking.Application.Features.Hotels.DeleteHotelImage;
 using HotelBooking.Application.Features.Hotels.UploadHotelImage;
 
@@ -28,6 +29,8 @@ public class HotelsController : ControllerBase
     private readonly UploadHotelImageService _uploadHotelImageService;
     private readonly DeleteHotelImageService _deleteHotelImageService;
 
+    private readonly GetFeaturedDealsService _getFeaturedDealsService;
+
     public HotelsController(
         CreateHotelService createHotelService,
         GetHotelsService getHotelsService,
@@ -35,7 +38,8 @@ public class HotelsController : ControllerBase
         DeleteHotelService deleteHotelService,
         UpdateHotelService updateHotelService,
         UploadHotelImageService uploadHotelImageService,
-        DeleteHotelImageService deleteHotelImageService)
+        DeleteHotelImageService deleteHotelImageService,
+        GetFeaturedDealsService getFeaturedDealsService)
     {
         _createHotelService = createHotelService;
         _getHotelsService = getHotelsService;
@@ -45,8 +49,17 @@ public class HotelsController : ControllerBase
 
         _uploadHotelImageService = uploadHotelImageService;
         _deleteHotelImageService = deleteHotelImageService;
+
+        _getFeaturedDealsService = getFeaturedDealsService;
     }
 
+    [HttpGet("featured")]
+    public async Task<ActionResult<List<GetFeaturedDealsResponse>>> GetFeatured(CancellationToken cancellationToken)
+    {
+        var result = await _getFeaturedDealsService.GetAsync(cancellationToken);
+
+        return Ok(result);
+    }
 
     [Authorize(Policy = AuthorizationPolicies.ManageHotels)]
     [HttpPost]
