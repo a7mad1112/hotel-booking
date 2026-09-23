@@ -15,7 +15,12 @@ public class RoomImageConfiguration
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.ImageUrl)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(2000);
+
+        builder.Property(x => x.PublicId)
+            .IsRequired()
+            .HasMaxLength(500);
 
         builder.HasOne(x => x.Room)
             .WithMany(x => x.Images)

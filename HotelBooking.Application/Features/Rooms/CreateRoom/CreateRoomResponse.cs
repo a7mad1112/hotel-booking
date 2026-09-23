@@ -1,0 +1,13 @@
+﻿namespace HotelBooking.Application.Features.Rooms.CreateRoom;
+
+public sealed class CreateRoomResponse
+{
+    public int Id { get; set; }
+    public int HotelId { get; set; }
+    public string RoomNumber { get; set; } = string.Empty;
+    public int RoomTypeId { get; set; }
+    public decimal PricePerNight { get; set; }
+    public int AdultsCapacity { get; set; }
+    public int ChildrenCapacity { get; set; }
+    public bool Availability { get; set; }
+}
