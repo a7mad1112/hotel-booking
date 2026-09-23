@@ -27,7 +27,6 @@
       <Folder Include="Features\Admin\" />
       <Folder Include="Features\Authentication\" />
       <Folder Include="Features\Bookings\" />
-      <Folder Include="Features\Hotels\" />
     </ItemGroup>
 
 </Project>
