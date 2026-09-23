@@ -34,6 +34,11 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
             .HasForeignKey(x => x.HotelId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(x => x.RoomType)
+            .WithMany(x => x.Rooms)
+            .HasForeignKey(x => x.RoomTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.ConfigureAuditProperties();
     }
 }

@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
 
-public class Repository<TEntity>
-    : IRepository<TEntity>, IScopedService
+public class Repository<TEntity> : IRepository<TEntity>, IScopedService
     where TEntity : BaseEntity
 {
     protected readonly ApplicationDbContext DbContext;

@@ -53,6 +53,9 @@ public static class AuthorizationExtensions
                         nameof(UserRole.Owner),
                         nameof(UserRole.Admin));
                 });
+
+            options.AddPolicy(AuthorizationPolicies.ManageRoomTypes,
+                policy => { policy.RequireRole(nameof(UserRole.Admin)); });
         });
 
         return services;
