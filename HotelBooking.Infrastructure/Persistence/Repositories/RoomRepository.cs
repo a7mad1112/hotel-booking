@@ -56,4 +56,9 @@ public sealed class RoomRepository : Repository<Room>, IRoomRepository, IScopedS
         return await DbContext.Bookings
             .AnyAsync(x => x.RoomId == roomId, cancellationToken);
     }
+
+    public async Task<bool> HasBookingsAsync(int roomId, CancellationToken cancellationToken)
+    {
+        return await DbContext.Bookings.AnyAsync(x => x.RoomId == roomId, cancellationToken);
+    }
 }

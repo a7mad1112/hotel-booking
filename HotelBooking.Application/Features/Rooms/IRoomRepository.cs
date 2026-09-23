@@ -14,4 +14,6 @@ public interface IRoomRepository : IRepository<Room>
     Task<bool> RoomTypeExistsAsync(int roomTypeId, CancellationToken cancellationToken);
 
     Task<bool> HasDependenciesAsync(int roomId, CancellationToken cancellationToken);
+
+    Task<bool> HasBookingsAsync(int roomId, CancellationToken cancellationToken);
 }

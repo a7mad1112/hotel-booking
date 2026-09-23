@@ -2,6 +2,7 @@
 using HotelBooking.API.Authorization;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Rooms.CreateRoom;
+using HotelBooking.Application.Features.Rooms.DeleteRoom;
 using HotelBooking.Application.Features.Rooms.GetRooms;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +15,61 @@ public class RoomsController : ControllerBase
 {
     private readonly CreateRoomService _createRoomService;
     private readonly GetRoomsService _getRoomsService;
+    private readonly DeleteRoomService _deleteRoomService;
 
-    public RoomsController(CreateRoomService createRoomService, GetRoomsService getRoomsService)
+    public RoomsController(CreateRoomService createRoomService, GetRoomsService getRoomsService,
+        DeleteRoomService deleteRoomService)
     {
         _createRoomService = createRoomService;
         _getRoomsService = getRoomsService;
+        _deleteRoomService = deleteRoomService;
+    }
+
+    [Authorize]
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var currentUserId))
+        {
+            return Unauthorized();
+        }
+
+        var isAdmin = User.IsInRole("Admin");
+
+        var result = await _deleteRoomService.DeleteAsync(id, currentUserId, isAdmin, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Room not found.")
+            {
+                return NotFound(new
+                {
+                    message = result.Error
+                });
+            }
+
+            if (result.Error == "You are not allowed to delete this room.")
+            {
+                return Forbid();
+            }
+
+            if (result.Error == "Cannot delete a room that has related bookings.")
+            {
+                return Conflict(new
+                {
+                    message = result.Error
+                });
+            }
+
+            return BadRequest(new
+            {
+                message = result.Error
+            });
+        }
+
+        return NoContent();
     }
 
     [HttpGet]
