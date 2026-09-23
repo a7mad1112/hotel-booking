@@ -3,6 +3,7 @@ using HotelBooking.API.Authorization;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Rooms.CreateRoom;
 using HotelBooking.Application.Features.Rooms.DeleteRoom;
+using HotelBooking.Application.Features.Rooms.GetRoomById;
 using HotelBooking.Application.Features.Rooms.GetRooms;
 using HotelBooking.Application.Features.Rooms.UpdateRoom;
 using Microsoft.AspNetCore.Authorization;
@@ -18,14 +19,33 @@ public class RoomsController : ControllerBase
     private readonly GetRoomsService _getRoomsService;
     private readonly DeleteRoomService _deleteRoomService;
     private readonly UpdateRoomService _updateRoomService;
+    private readonly GetRoomByIdService _getRoomByIdService;
 
     public RoomsController(CreateRoomService createRoomService, GetRoomsService getRoomsService,
-        DeleteRoomService deleteRoomService, UpdateRoomService updateRoomService)
+        DeleteRoomService deleteRoomService, UpdateRoomService updateRoomService,
+        GetRoomByIdService getRoomByIdService)
     {
         _createRoomService = createRoomService;
         _getRoomsService = getRoomsService;
         _deleteRoomService = deleteRoomService;
         _updateRoomService = updateRoomService;
+        _getRoomByIdService = getRoomByIdService;
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<GetRoomByIdResponse>> GetById(int id, CancellationToken cancellationToken)
+    {
+        var result = await _getRoomByIdService.GetAsync(id, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return NotFound(new
+            {
+                message = result.Error
+            });
+        }
+
+        return Ok(result.Value);
     }
 
     [Authorize]
