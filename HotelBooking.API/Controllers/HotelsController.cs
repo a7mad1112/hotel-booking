@@ -118,14 +118,9 @@ public class HotelsController : ControllerBase
 
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<GetHotelByIdResponse>> GetById(
-        int id,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<GetHotelByIdResponse>> GetById(int id, CancellationToken cancellationToken)
     {
-        var result =
-            await _getHotelByIdService.GetAsync(
-                id,
-                cancellationToken);
+        var result = await _getHotelByIdService.GetAsync(id, cancellationToken);
         if (!result.IsSuccess)
         {
             return NotFound(new
