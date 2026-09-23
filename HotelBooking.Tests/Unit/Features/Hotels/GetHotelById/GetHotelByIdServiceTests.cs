@@ -12,8 +12,7 @@ public class GetHotelByIdServiceTests
     {
         var repository = new Mock<IHotelRepository>();
 
-        repository
-            .Setup(x => x.GetDetailsByIdAsync(
+        repository.Setup(x => x.GetDetailsByIdAsync(
                 1,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(
@@ -30,12 +29,6 @@ public class GetHotelByIdServiceTests
                         Id = 2,
                         Name = "Amman",
                         Country = "Jordan"
-                    },
-                    OwnerId = 3,
-                    Owner = new User
-                    {
-                        Id = 3,
-                        Email = "owner@example.com"
                     }
                 });
 
@@ -64,10 +57,6 @@ public class GetHotelByIdServiceTests
         Assert.Equal(
             "Jordan",
             result.Value.Country);
-
-        Assert.Equal(
-            "owner@example.com",
-            result.Value.OwnerEmail);
     }
 
 

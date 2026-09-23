@@ -9,9 +9,7 @@ namespace HotelBooking.Infrastructure.Persistence.Repositories;
 public sealed class HotelRepository
     : Repository<Hotel>, IHotelRepository, IScopedService
 {
-    public HotelRepository(
-        ApplicationDbContext context)
-        : base(context)
+    public HotelRepository(ApplicationDbContext context) : base(context)
     {
     }
 
@@ -27,9 +25,7 @@ public sealed class HotelRepository
             .Include(x => x.Owner);
 
 
-        var totalCount =
-            await query.CountAsync(
-                cancellationToken);
+        var totalCount = await query.CountAsync(cancellationToken);
 
 
         var items =
@@ -42,54 +38,41 @@ public sealed class HotelRepository
                 .ToListAsync(cancellationToken);
 
 
-        return (
-            items,
-            totalCount);
+        return (items, totalCount);
     }
 
 
-    public async Task<Hotel?> GetDetailsByIdAsync(
-        int id,
-        CancellationToken cancellationToken)
+    public async Task<Hotel?> GetDetailsByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await DbContext.Hotels
             .AsNoTracking()
             .Include(x => x.City)
-            .Include(x => x.Owner)
-            .FirstOrDefaultAsync(
-                x => x.Id == id,
-                cancellationToken);
+            .Include(x => x.Images)
+            .Include(x => x.Rooms)
+            .ThenInclude(x => x.RoomType)
+            .Include(x => x.Rooms)
+            .ThenInclude(x => x.Images)
+            .Include(x => x.Reviews)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-
-    public async Task<bool> CityExistsAsync(
-        int cityId,
-        CancellationToken cancellationToken)
+    public async Task<bool> CityExistsAsync(int cityId, CancellationToken cancellationToken)
     {
-        return await DbContext.Cities
-            .AnyAsync(
-                x => x.Id == cityId,
-                cancellationToken);
+        return await DbContext.Cities.AnyAsync(x => x.Id == cityId, cancellationToken);
     }
 
 
-    public async Task<bool> OwnerExistsAsync(
-        int ownerId,
-        CancellationToken cancellationToken)
+    public async Task<bool> OwnerExistsAsync(int ownerId, CancellationToken cancellationToken)
     {
         return await DbContext.Users
-            .AnyAsync(
-                x => x.Id == ownerId && x.Role == UserRole.Owner,
+            .AnyAsync(x => x.Id == ownerId && x.Role == UserRole.Owner,
                 cancellationToken);
     }
 
     public async Task<bool> HasDependenciesAsync(int hotelId, CancellationToken cancellationToken)
     {
         return await DbContext.Rooms.AnyAsync(
-                   x => x.HotelId == hotelId,
-                   cancellationToken)
-               || await DbContext.Reviews.AnyAsync(
-                   x => x.HotelId == hotelId,
-                   cancellationToken);
+                   x => x.HotelId == hotelId, cancellationToken) ||
+               await DbContext.Reviews.AnyAsync(x => x.HotelId == hotelId, cancellationToken);
     }
 }

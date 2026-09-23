@@ -8,4 +8,5 @@ public static class AuthorizationPolicies
     public const string CreateBooking = "CreateBooking";
     public const string ViewHotels = "ViewHotels";
     public const string ManageRoomTypes = "ManageRoomTypes";
+    public const string ManageDeals = "ManageDeals";
 }

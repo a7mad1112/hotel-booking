@@ -29,6 +29,9 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasForeignKey(x => x.RoomId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // faster querying for booking history
+        builder.HasIndex(x => x.UserId);
+
         builder.Property(x => x.CheckInDate)
             .IsRequired();
 
