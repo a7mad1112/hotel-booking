@@ -29,4 +29,16 @@ public sealed class BookingRepository
                     checkInDate < booking.CheckOutDate,
                 cancellationToken);
     }
+
+    public async Task<Booking?> GetCheckoutAsync(int bookingId, int userId, CancellationToken cancellationToken)
+    {
+        return await DbContext.Bookings
+            .AsNoTracking()
+            .Include(x => x.User)
+            .Include(x => x.Room)
+            .ThenInclude(x => x.Hotel)
+            .ThenInclude(x => x.City)
+            .FirstOrDefaultAsync(x => x.Id == bookingId && x.UserId == userId,
+                cancellationToken);
+    }
 }
