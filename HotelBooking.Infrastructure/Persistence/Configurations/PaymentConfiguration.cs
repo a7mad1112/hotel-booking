@@ -27,6 +27,16 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(x => x.Amount)
             .HasPrecision(12, 2);
 
+        builder.HasIndex(x => x.IdempotencyKey)
+            .IsUnique();
+
+        builder.HasIndex(x => x.BookingId)
+            .IsUnique();
+
+        builder.Property(x => x.CheckoutUrl)
+            .IsRequired()
+            .HasMaxLength(2000);
+
         builder.Property(x => x.Status)
             .IsRequired();
 

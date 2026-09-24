@@ -4,6 +4,7 @@ using HotelBooking.Application.Features.Authentication.Register;
 using HotelBooking.Application.Features.Cities;
 using HotelBooking.Infrastructure.Authentication;
 using HotelBooking.Infrastructure.ExternalServices.Cloudinary;
+using HotelBooking.Infrastructure.ExternalServices.Stripe;
 using HotelBooking.Infrastructure.Persistence;
 using HotelBooking.Infrastructure.Persistence.Interceptors;
 using HotelBooking.Infrastructure.Persistence.Repositories;
@@ -62,6 +63,8 @@ public static class DependencyInjection
                 JwtOptions.SectionName));
         services.Configure<CloudinaryOptions>(
             configuration.GetSection(CloudinaryOptions.SectionName));
+
+        services.Configure<StripeOptions>(configuration.GetSection(StripeOptions.SectionName));
 
         return services;
     }
