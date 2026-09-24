@@ -1,5 +1,6 @@
 ﻿using HotelBooking.Application.Features.Bookings;
 using HotelBooking.Application.Features.Bookings.CreateBooking;
+using HotelBooking.Application.Features.Deals;
 using HotelBooking.Application.Features.Rooms;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
@@ -15,6 +16,7 @@ public class CreateBookingServiceTests
         // Arrange
         var bookingRepository = new Mock<IBookingRepository>();
         var roomRepository = new Mock<IRoomRepository>();
+        var dealRepository = new Mock<IDealRepository>();
 
         var room = new Room
         {
@@ -26,7 +28,9 @@ public class CreateBookingServiceTests
         };
 
         roomRepository
-            .Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByIdAsync(
+                1,
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(room);
 
         bookingRepository
@@ -37,7 +41,15 @@ public class CreateBookingServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        var service = new CreateBookingService(bookingRepository.Object, roomRepository.Object);
+        dealRepository
+            .Setup(x => x.GetApplicableDealAsync(
+                10,
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Deal?)null);
+
+        var service = new CreateBookingService(bookingRepository.Object, roomRepository.Object, dealRepository.Object);
 
         var request = new CreateBookingRequest
         {
@@ -57,7 +69,12 @@ public class CreateBookingServiceTests
         Assert.Equal(10, result.Value.HotelId);
         Assert.Equal(3, result.Value.Nights);
         Assert.Equal(100m, result.Value.PricePerNight);
+
+        Assert.Equal(300m, result.Value.Subtotal);
+        Assert.Null(result.Value.DiscountPercentage);
+        Assert.Equal(0m, result.Value.DiscountAmount);
         Assert.Equal(300m, result.Value.TotalPrice);
+
         Assert.Equal(BookingStatus.Pending, result.Value.Status);
 
         bookingRepository.Verify(
@@ -84,6 +101,7 @@ public class CreateBookingServiceTests
         // Arrange
         var bookingRepository = new Mock<IBookingRepository>();
         var roomRepository = new Mock<IRoomRepository>();
+        var dealRepository = new Mock<IDealRepository>();
 
         var room = new Room
         {
@@ -108,7 +126,10 @@ public class CreateBookingServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var service = new CreateBookingService(bookingRepository.Object, roomRepository.Object);
+        var service = new CreateBookingService(
+            bookingRepository.Object,
+            roomRepository.Object,
+            dealRepository.Object);
 
         var request = new CreateBookingRequest
         {
@@ -131,7 +152,17 @@ public class CreateBookingServiceTests
                 It.IsAny<CancellationToken>()),
             Times.Never);
 
-        bookingRepository.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
+        bookingRepository.Verify(
+            x => x.SaveChangesAsync(
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+
+        dealRepository.Verify(
+            x => x.GetApplicableDealAsync(
+                It.IsAny<int>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<DateTime>(),
+                It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }
