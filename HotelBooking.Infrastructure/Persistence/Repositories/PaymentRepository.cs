@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
 
-public sealed class PaymentRepository : Repository<Payment>, IPaymentRepository, IScopedService
+public sealed class PaymentRepository
+    : Repository<Payment>, IPaymentRepository, IScopedService
 {
     public PaymentRepository(ApplicationDbContext context) : base(context)
     {
@@ -40,6 +41,13 @@ public sealed class PaymentRepository : Repository<Payment>, IPaymentRepository,
     {
         return await DbContext.Payments
             .Include(x => x.Booking)
-            .FirstOrDefaultAsync(x => x.TransactionId == transactionId, cancellationToken);
+            .ThenInclude(x => x.User)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x.Room)
+            .ThenInclude(x => x.Hotel)
+            .ThenInclude(x => x.City)
+            .FirstOrDefaultAsync(
+                x => x.TransactionId == transactionId,
+                cancellationToken);
     }
 }

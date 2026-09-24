@@ -1,6 +1,7 @@
 ﻿using HotelBooking.Domain.Common;
-using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
+
+namespace HotelBooking.Domain.Entities;
 
 public class Payment : AuditableEntity
 {
@@ -21,6 +22,8 @@ public class Payment : AuditableEntity
     public PaymentStatus Status { get; set; }
 
     public DateTimeOffset PaymentDate { get; set; }
+
+    public DateTimeOffset? ConfirmationEmailSentAt { get; set; }
 
     public Booking Booking { get; set; } = null!;
 }
