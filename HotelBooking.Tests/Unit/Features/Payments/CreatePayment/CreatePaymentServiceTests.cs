@@ -5,6 +5,7 @@ using HotelBooking.Application.Features.Payments.CreatePayment;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotelBooking.Tests.Unit.Features.Payments.CreatePayment;
 
@@ -87,7 +88,8 @@ public class CreatePaymentServiceTests
         var service = new CreatePaymentService(
             bookingRepository.Object,
             paymentRepository.Object,
-            paymentProvider.Object);
+            paymentProvider.Object,
+            NullLogger<CreatePaymentService>.Instance);
 
         // Act
         var result = await service.CreateAsync(
@@ -186,7 +188,8 @@ public class CreatePaymentServiceTests
         var service = new CreatePaymentService(
             bookingRepository.Object,
             paymentRepository.Object,
-            paymentProvider.Object);
+            paymentProvider.Object,
+            NullLogger<CreatePaymentService>.Instance);
 
         // Act
         var result = await service.CreateAsync(

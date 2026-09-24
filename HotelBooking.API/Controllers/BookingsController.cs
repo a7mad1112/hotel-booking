@@ -24,6 +24,7 @@ public class BookingsController : ControllerBase
     private readonly ConfirmPaymentService _confirmPaymentService;
     private readonly FailPaymentService _failPaymentService;
     private readonly StripeOptions _stripeOptions;
+    private readonly ILogger<BookingsController> _logger;
 
     public BookingsController(
         CreateBookingService createBookingService,
@@ -31,7 +32,8 @@ public class BookingsController : ControllerBase
         CreatePaymentService createPaymentService,
         ConfirmPaymentService confirmPaymentService,
         FailPaymentService failPaymentService,
-        IOptions<StripeOptions> stripeOptions)
+        IOptions<StripeOptions> stripeOptions,
+        ILogger<BookingsController> logger)
     {
         _createBookingService = createBookingService;
         _getCheckoutService = getCheckoutService;
@@ -39,16 +41,21 @@ public class BookingsController : ControllerBase
         _confirmPaymentService = confirmPaymentService;
         _failPaymentService = failPaymentService;
         _stripeOptions = stripeOptions.Value;
+        _logger = logger;
     }
 
     [AllowAnonymous]
     [HttpPost("/api/payments/stripe/webhook")]
     public async Task<IActionResult> StripeWebhook(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Stripe webhook received.");
+
         var json = await new StreamReader(Request.Body).ReadToEndAsync(cancellationToken);
 
         if (!Request.Headers.TryGetValue("Stripe-Signature", out var signature))
         {
+            _logger.LogWarning("Stripe webhook rejected because Stripe-Signature header was missing.");
+
             return BadRequest();
         }
 
@@ -58,78 +65,94 @@ public class BookingsController : ControllerBase
         {
             stripeEvent = EventUtility.ConstructEvent(json, signature.ToString(), _stripeOptions.WebhookSecret);
         }
-        catch (Exception)
+        catch (Exception exception)
         {
+            _logger.LogWarning(exception, "Stripe webhook signature validation failed.");
+
             return BadRequest();
         }
+
+        _logger.LogInformation("Stripe webhook validated. EventType {EventType}, EventId {EventId}",
+            stripeEvent.Type,
+            stripeEvent.Id);
 
         switch (stripeEvent.Type)
         {
             case EventTypes.CheckoutSessionCompleted:
             case EventTypes.CheckoutSessionAsyncPaymentSucceeded:
-            {
-                var session = stripeEvent.Data.Object as Session;
-
-                if (session is null)
                 {
-                    return BadRequest();
+                    var session = stripeEvent.Data.Object as Session;
+
+                    if (session is null)
+                    {
+                        _logger.LogWarning("Stripe webhook contained an invalid checkout session.");
+
+                        return BadRequest();
+                    }
+
+                    if (session.PaymentStatus != "paid")
+                    {
+                        _logger.LogInformation("Stripe checkout session was received but payment status was not paid. EventType {EventType}", stripeEvent.Type);
+
+                        return Ok();
+                    }
+
+                    var amount = session.AmountTotal.HasValue
+                            ? session.AmountTotal.Value / 100m
+                            : 0m;
+
+                    var result = await _confirmPaymentService.ConfirmAsync(session.Id, session.PaymentIntentId, amount, cancellationToken);
+
+                    if (!result.IsSuccess && result.Error == "Payment not found.")
+                    {
+                        _logger.LogWarning("Stripe payment confirmation failed because payment was not found.");
+
+                        return NotFound();
+                    }
+
+                    if (!result.IsSuccess)
+                    {
+                        _logger.LogWarning("Stripe payment confirmation failed. Error: {Error}", result.Error);
+
+                        return BadRequest();
+                    }
+
+                    _logger.LogInformation("Stripe payment confirmation processed successfully.");
+
+                    break;
                 }
-
-                if (session.PaymentStatus != "paid")
-                {
-                    return Ok();
-                }
-
-                var amount = session.AmountTotal.HasValue
-                    ? session.AmountTotal.Value / 100m
-                    : 0m;
-
-                var result =
-                    await _confirmPaymentService.ConfirmAsync(
-                        session.Id,
-                        session.PaymentIntentId,
-                        amount,
-                        cancellationToken);
-
-                if (!result.IsSuccess &&
-                    result.Error == "Payment not found.")
-                {
-                    return NotFound();
-                }
-
-                if (!result.IsSuccess)
-                {
-                    return BadRequest();
-                }
-
-                break;
-            }
 
             case EventTypes.CheckoutSessionAsyncPaymentFailed:
-            {
-                var session =
-                    stripeEvent.Data.Object as Session;
-
-                if (session is null)
                 {
-                    return BadRequest();
+                    var session = stripeEvent.Data.Object as Session;
+
+                    if (session is null)
+                    {
+                        _logger.LogWarning("Stripe payment failure webhook contained an invalid checkout session.");
+
+                        return BadRequest();
+                    }
+
+                    var result = await _failPaymentService.FailAsync(session.Id, cancellationToken);
+
+                    if (!result.IsSuccess && result.Error == "Payment not found.")
+                    {
+                        _logger.LogWarning("Stripe payment failure processing failed because payment was not found.");
+
+                        return NotFound();
+                    }
+
+                    if (!result.IsSuccess)
+                    {
+                        _logger.LogWarning("Stripe payment failure processing failed. Error: {Error}", result.Error);
+
+                        return BadRequest();
+                    }
+
+                    _logger.LogInformation("Stripe payment failure processed successfully.");
+
+                    break;
                 }
-
-                var result =
-                    await _failPaymentService.FailAsync(session.Id, cancellationToken);
-
-                if (!result.IsSuccess && result.Error == "Payment not found.")
-                {
-                    return NotFound();
-                }
-
-                if (!result.IsSuccess)
-                {
-                    return BadRequest();
-                }
-
-                break;
-            }
         }
 
         return Ok();
@@ -160,13 +183,7 @@ public class BookingsController : ControllerBase
 
         var cancelUrl = $"{Request.Scheme}://{Request.Host}/api/bookings/{id}/payment/cancel";
 
-        var result = await _createPaymentService.CreateAsync(
-            id,
-            currentUserId,
-            idempotencyKey,
-            successUrl,
-            cancelUrl,
-            cancellationToken);
+        var result = await _createPaymentService.CreateAsync(id, currentUserId, idempotencyKey, successUrl, cancelUrl, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -198,9 +215,7 @@ public class BookingsController : ControllerBase
 
     [Authorize(Policy = AuthorizationPolicies.CreateBooking)]
     [HttpPost]
-    public async Task<ActionResult<CreateBookingResponse>> Create(
-        CreateBookingRequest request,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<CreateBookingResponse>> Create(CreateBookingRequest request, CancellationToken cancellationToken)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

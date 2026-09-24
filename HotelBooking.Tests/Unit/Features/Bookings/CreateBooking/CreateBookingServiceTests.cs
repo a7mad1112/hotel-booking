@@ -5,6 +5,7 @@ using HotelBooking.Application.Features.Rooms;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotelBooking.Tests.Unit.Features.Bookings.CreateBooking;
 
@@ -49,7 +50,8 @@ public class CreateBookingServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((Deal?)null);
 
-        var service = new CreateBookingService(bookingRepository.Object, roomRepository.Object, dealRepository.Object);
+        var service = new CreateBookingService(bookingRepository.Object, roomRepository.Object, dealRepository.Object,
+              NullLogger<CreateBookingService>.Instance);
 
         var request = new CreateBookingRequest
         {
@@ -129,7 +131,8 @@ public class CreateBookingServiceTests
         var service = new CreateBookingService(
             bookingRepository.Object,
             roomRepository.Object,
-            dealRepository.Object);
+            dealRepository.Object,
+            NullLogger<CreateBookingService>.Instance);
 
         var request = new CreateBookingRequest
         {

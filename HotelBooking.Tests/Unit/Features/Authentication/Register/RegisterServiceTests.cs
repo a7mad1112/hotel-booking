@@ -2,6 +2,7 @@
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotelBooking.Tests.Unit.Features.Authentication.Register;
 
@@ -18,7 +19,8 @@ public class RegisterServiceTests
 
         _service = new RegisterService(
             _repository,
-            _passwordHasher);
+            _passwordHasher,
+            NullLogger<RegisterService>.Instance);
     }
 
     [Fact]

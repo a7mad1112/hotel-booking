@@ -3,6 +3,7 @@ using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotelBooking.Tests.Unit.Features.Authentication.Login;
 
@@ -23,7 +24,8 @@ public class LoginServiceTests
         _service = new LoginService(
             _repositoryMock.Object,
             _passwordHasherMock.Object,
-            _jwtTokenGeneratorMock.Object);
+            _jwtTokenGeneratorMock.Object,
+            NullLogger<LoginService>.Instance);
     }
 
     [Fact]
