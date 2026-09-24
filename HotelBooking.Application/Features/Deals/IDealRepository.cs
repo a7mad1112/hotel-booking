@@ -15,4 +15,7 @@ public interface IDealRepository : IRepository<Deal>
         CancellationToken cancellationToken);
 
     Task<List<Deal>> GetFeaturedAsync(DateTime now, int limit, CancellationToken cancellationToken);
+
+    Task<Deal?> GetApplicableDealAsync(int hotelId, DateTime checkInDate, DateTime checkOutDate,
+        CancellationToken cancellationToken);
 }

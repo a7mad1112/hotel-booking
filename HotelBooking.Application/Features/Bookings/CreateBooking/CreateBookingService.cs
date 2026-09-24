@@ -1,6 +1,7 @@
 ﻿using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Bookings;
+using HotelBooking.Application.Features.Deals;
 using HotelBooking.Application.Features.Rooms;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
@@ -11,11 +12,14 @@ public sealed class CreateBookingService : IScopedService
 {
     private readonly IBookingRepository _bookingRepository;
     private readonly IRoomRepository _roomRepository;
+    private readonly IDealRepository _dealRepository;
 
-    public CreateBookingService(IBookingRepository bookingRepository, IRoomRepository roomRepository)
+    public CreateBookingService(IBookingRepository bookingRepository, IRoomRepository roomRepository,
+        IDealRepository dealRepository)
     {
         _bookingRepository = bookingRepository;
         _roomRepository = roomRepository;
+        _dealRepository = dealRepository;
     }
 
     public async Task<ResultOfT<CreateBookingResponse>> CreateAsync(
@@ -49,8 +53,22 @@ public sealed class CreateBookingService : IScopedService
 
         var nights = (request.CheckOutDate.Date - request.CheckInDate.Date).Days;
 
-        var totalPrice = room.PricePerNight * nights;
+        var subtotal = room.PricePerNight * nights;
 
+        var deal = await _dealRepository.GetApplicableDealAsync(
+            room.HotelId,
+            request.CheckInDate,
+            request.CheckOutDate,
+            cancellationToken);
+
+        var discountAmount = 0m;
+
+        if (deal is not null)
+        {
+            discountAmount = subtotal * deal.DiscountPercentage / 100m;
+        }
+
+        var totalPrice = subtotal - discountAmount;
         var booking = new Booking
         {
             UserId = currentUserId,
@@ -71,11 +89,23 @@ public sealed class CreateBookingService : IScopedService
                 Id = booking.Id,
                 RoomId = booking.RoomId,
                 HotelId = room.HotelId,
+
                 CheckInDate = booking.CheckInDate,
                 CheckOutDate = booking.CheckOutDate,
+
                 Nights = nights,
+
                 PricePerNight = room.PricePerNight,
+
+                Subtotal = subtotal,
+
+                DiscountPercentage =
+                    deal?.DiscountPercentage,
+
+                DiscountAmount = discountAmount,
+
                 TotalPrice = booking.TotalPrice,
+
                 Status = booking.Status
             });
     }

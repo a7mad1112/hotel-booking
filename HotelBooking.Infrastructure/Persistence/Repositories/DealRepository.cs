@@ -77,4 +77,17 @@ public sealed class DealRepository : Repository<Deal>, IDealRepository, IScopedS
             .Take(limit)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<Deal?> GetApplicableDealAsync(int hotelId, DateTime checkInDate, DateTime checkOutDate,
+        CancellationToken cancellationToken)
+    {
+        return await DbContext.Deals
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x =>
+                    x.HotelId == hotelId &&
+                    x.StartDate <= checkInDate &&
+                    x.EndDate >= checkOutDate,
+                cancellationToken);
+    }
 }
