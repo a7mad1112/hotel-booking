@@ -2,9 +2,15 @@
 using HotelBooking.API.Authorization;
 using HotelBooking.Application.Features.Bookings.Checkout;
 using HotelBooking.Application.Features.Bookings.CreateBooking;
+using HotelBooking.Application.Features.Payments.ConfirmPayment;
 using HotelBooking.Application.Features.Payments.CreatePayment;
+using HotelBooking.Application.Features.Payments.FailPayment;
+using HotelBooking.Infrastructure.ExternalServices.Stripe;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Stripe;
+using Stripe.Checkout;
 
 namespace HotelBooking.API.Controllers;
 
@@ -15,13 +21,118 @@ public class BookingsController : ControllerBase
     private readonly CreateBookingService _createBookingService;
     private readonly GetCheckoutService _getCheckoutService;
     private readonly CreatePaymentService _createPaymentService;
+    private readonly ConfirmPaymentService _confirmPaymentService;
+    private readonly FailPaymentService _failPaymentService;
+    private readonly StripeOptions _stripeOptions;
 
-    public BookingsController(CreateBookingService createBookingService, GetCheckoutService getCheckoutService,
-        CreatePaymentService createPaymentService)
+    public BookingsController(
+        CreateBookingService createBookingService,
+        GetCheckoutService getCheckoutService,
+        CreatePaymentService createPaymentService,
+        ConfirmPaymentService confirmPaymentService,
+        FailPaymentService failPaymentService,
+        IOptions<StripeOptions> stripeOptions)
     {
         _createBookingService = createBookingService;
         _getCheckoutService = getCheckoutService;
         _createPaymentService = createPaymentService;
+        _confirmPaymentService = confirmPaymentService;
+        _failPaymentService = failPaymentService;
+        _stripeOptions = stripeOptions.Value;
+    }
+
+    [AllowAnonymous]
+    [HttpPost("/api/payments/stripe/webhook")]
+    public async Task<IActionResult> StripeWebhook(CancellationToken cancellationToken)
+    {
+        var json = await new StreamReader(Request.Body).ReadToEndAsync(cancellationToken);
+
+        if (!Request.Headers.TryGetValue("Stripe-Signature", out var signature))
+        {
+            return BadRequest();
+        }
+
+        Event stripeEvent;
+
+        try
+        {
+            stripeEvent = EventUtility.ConstructEvent(json, signature.ToString(), _stripeOptions.WebhookSecret);
+        }
+        catch (Exception)
+        {
+            return BadRequest();
+        }
+
+        switch (stripeEvent.Type)
+        {
+            case EventTypes.CheckoutSessionCompleted:
+            case EventTypes.CheckoutSessionAsyncPaymentSucceeded:
+            {
+                var session = stripeEvent.Data.Object as Session;
+
+                if (session is null)
+                {
+                    return BadRequest();
+                }
+
+                if (session.PaymentStatus != "paid")
+                {
+                    return Ok();
+                }
+
+                var amount = session.AmountTotal.HasValue
+                    ? session.AmountTotal.Value / 100m
+                    : 0m;
+
+                var result =
+                    await _confirmPaymentService.ConfirmAsync(
+                        session.Id,
+                        session.PaymentIntentId,
+                        amount,
+                        cancellationToken);
+
+                if (!result.IsSuccess &&
+                    result.Error == "Payment not found.")
+                {
+                    return NotFound();
+                }
+
+                if (!result.IsSuccess)
+                {
+                    return BadRequest();
+                }
+
+                break;
+            }
+
+            case EventTypes.CheckoutSessionAsyncPaymentFailed:
+            {
+                var session =
+                    stripeEvent.Data.Object as Session;
+
+                if (session is null)
+                {
+                    return BadRequest();
+                }
+
+                var result =
+                    await _failPaymentService.FailAsync(session.Id, cancellationToken);
+
+                if (!result.IsSuccess && result.Error == "Payment not found.")
+                {
+                    return NotFound();
+                }
+
+                if (!result.IsSuccess)
+                {
+                    return BadRequest();
+                }
+
+                break;
+            }
+        }
+
+        return Ok();
     }
 
     [Authorize(Policy = AuthorizationPolicies.CreateBooking)]

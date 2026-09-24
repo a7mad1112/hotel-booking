@@ -35,4 +35,11 @@ public sealed class PaymentRepository : Repository<Payment>, IPaymentRepository,
                     x.Booking.UserId == userId,
                 cancellationToken);
     }
+
+    public async Task<Payment?> GetByTransactionIdAsync(string transactionId, CancellationToken cancellationToken)
+    {
+        return await DbContext.Payments
+            .Include(x => x.Booking)
+            .FirstOrDefaultAsync(x => x.TransactionId == transactionId, cancellationToken);
+    }
 }
