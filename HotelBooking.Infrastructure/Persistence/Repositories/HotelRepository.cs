@@ -53,6 +53,8 @@ public sealed class HotelRepository
             .ThenInclude(x => x.RoomType)
             .Include(x => x.Rooms)
             .ThenInclude(x => x.Images)
+            .Include(x => x.HotelAmenities)
+            .ThenInclude(x => x.Amenity)
             .Include(x => x.Reviews)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }

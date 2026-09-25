@@ -79,6 +79,16 @@ public sealed class GetHotelByIdService : IScopedService
                         Comment = review.Comment,
                         UserId = review.UserId
                     })
+                    .ToList(),
+
+                Amenities = hotel.HotelAmenities
+                    .Where(ha => ha.Amenity != null)
+                    .Select(ha => new HotelAmenityResponse
+                    {
+                        Id = ha.AmenityId,
+                        Name = ha.Amenity.Name,
+                        Description = ha.Amenity.Description
+                    })
                     .ToList()
             });
     }
