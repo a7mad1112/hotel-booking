@@ -16,7 +16,7 @@ public class Repository<TEntity> : IRepository<TEntity>, IScopedService
     }
 
 
-    public async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public virtual async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await DbContext
             .Set<TEntity>()
