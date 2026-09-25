@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Testcontainers.PostgreSql;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotelBooking.Tests.Integration.Features.Authentication.Login;
 
@@ -57,7 +58,8 @@ public class LoginServiceIntegrationTests : IAsyncLifetime
         _loginService = new LoginService(
             repository,
             passwordHasher,
-            jwtTokenGenerator);
+            jwtTokenGenerator,
+            NullLogger<LoginService>.Instance);
     }
 
     public async Task DisposeAsync()

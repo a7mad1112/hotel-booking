@@ -1,10 +1,12 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Exceptions;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Bookings;
 using HotelBooking.Application.Features.Deals;
 using HotelBooking.Application.Features.Rooms;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace HotelBooking.Application.Features.Bookings.CreateBooking;
 
@@ -13,13 +15,18 @@ public sealed class CreateBookingService : IScopedService
     private readonly IBookingRepository _bookingRepository;
     private readonly IRoomRepository _roomRepository;
     private readonly IDealRepository _dealRepository;
+    private readonly ILogger<CreateBookingService> _logger;
 
-    public CreateBookingService(IBookingRepository bookingRepository, IRoomRepository roomRepository,
-        IDealRepository dealRepository)
+    public CreateBookingService(
+        IBookingRepository bookingRepository,
+        IRoomRepository roomRepository,
+        IDealRepository dealRepository,
+        ILogger<CreateBookingService> logger)
     {
         _bookingRepository = bookingRepository;
         _roomRepository = roomRepository;
         _dealRepository = dealRepository;
+        _logger = logger;
     }
 
     public async Task<ResultOfT<CreateBookingResponse>> CreateAsync(
@@ -27,20 +34,35 @@ public sealed class CreateBookingService : IScopedService
         int currentUserId,
         CancellationToken cancellationToken)
     {
+        _logger.LogInformation(
+            "Creating booking for UserId {UserId}, RoomId {RoomId}, CheckIn {CheckInDate}, CheckOut {CheckOutDate}",
+            currentUserId,
+            request.RoomId,
+            request.CheckInDate,
+            request.CheckOutDate);
+
         var room = await _roomRepository.GetByIdAsync(request.RoomId, cancellationToken);
 
         if (room is null)
         {
+            _logger.LogWarning(
+                "Booking creation failed because RoomId {RoomId} was not found. UserId {UserId}",
+                request.RoomId,
+                currentUserId);
+
             return ResultOfT<CreateBookingResponse>.Failure("Room not found.");
         }
 
         if (!room.Availability)
         {
+            _logger.LogWarning("Booking creation failed because RoomId {RoomId} is unavailable. UserId {UserId}",
+                request.RoomId,
+                currentUserId);
+
             return ResultOfT<CreateBookingResponse>.Failure("Room is not available.");
         }
 
-        var hasOverlap =
-            await _bookingRepository.HasOverlappingBookingAsync(
+        var hasOverlap = await _bookingRepository.HasOverlappingBookingAsync(
                 request.RoomId,
                 request.CheckInDate,
                 request.CheckOutDate,
@@ -48,6 +70,10 @@ public sealed class CreateBookingService : IScopedService
 
         if (hasOverlap)
         {
+            _logger.LogWarning("Booking creation failed because RoomId {RoomId} has an overlapping booking. UserId {UserId}",
+                request.RoomId,
+                currentUserId);
+
             return ResultOfT<CreateBookingResponse>.Failure("Room is not available for the selected dates.");
         }
 
@@ -66,9 +92,15 @@ public sealed class CreateBookingService : IScopedService
         if (deal is not null)
         {
             discountAmount = subtotal * deal.DiscountPercentage / 100m;
+
+            _logger.LogInformation(
+                "Deal applied to booking. HotelId {HotelId}, DiscountPercentage {DiscountPercentage}",
+                room.HotelId,
+                deal.DiscountPercentage);
         }
 
         var totalPrice = subtotal - discountAmount;
+
         var booking = new Booking
         {
             UserId = currentUserId,
@@ -76,12 +108,34 @@ public sealed class CreateBookingService : IScopedService
             CheckInDate = request.CheckInDate,
             CheckOutDate = request.CheckOutDate,
             TotalPrice = totalPrice,
-            Status = BookingStatus.Pending
+            Status = BookingStatus.Pending,
+            SpecialRequests = string.IsNullOrWhiteSpace(request.SpecialRequests)
+                ? null
+                : request.SpecialRequests.Trim()
         };
 
         await _bookingRepository.AddAsync(booking, cancellationToken);
 
-        await _bookingRepository.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _bookingRepository.SaveChangesAsync(cancellationToken);
+        }
+        catch (OverlappingBookingException)
+        {
+            _logger.LogWarning(
+                "Booking creation failed due to overlapping booking conflict during persistence. RoomId {RoomId}, UserId {UserId}",
+                room.Id,
+                currentUserId);
+
+            return ResultOfT<CreateBookingResponse>.Failure("Room is not available for the selected dates.");
+        }
+
+        _logger.LogInformation(
+            "Booking created successfully. BookingId {BookingId}, UserId {UserId}, RoomId {RoomId}, TotalPrice {TotalPrice}",
+            booking.Id,
+            currentUserId,
+            room.Id,
+            booking.TotalPrice);
 
         return ResultOfT<CreateBookingResponse>.Success(
             new CreateBookingResponse
@@ -106,7 +160,9 @@ public sealed class CreateBookingService : IScopedService
 
                 TotalPrice = booking.TotalPrice,
 
-                Status = booking.Status
+                Status = booking.Status,
+
+                SpecialRequests = booking.SpecialRequests
             });
     }
 }

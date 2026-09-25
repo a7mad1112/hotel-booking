@@ -20,6 +20,7 @@ namespace HotelBooking.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "8.0.31")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "btree_gist");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("HotelBooking.Domain.Entities.Amenity", b =>
@@ -72,6 +73,10 @@ namespace HotelBooking.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("RoomId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("SpecialRequests")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

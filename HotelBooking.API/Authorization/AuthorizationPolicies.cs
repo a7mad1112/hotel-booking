@@ -1,4 +1,4 @@
-﻿namespace HotelBooking.API.Authorization;
+namespace HotelBooking.API.Authorization;
 
 public static class AuthorizationPolicies
 {
@@ -9,4 +9,5 @@ public static class AuthorizationPolicies
     public const string ViewHotels = "ViewHotels";
     public const string ManageRoomTypes = "ManageRoomTypes";
     public const string ManageDeals = "ManageDeals";
+    public const string ManageAmenities = "ManageAmenities";
 }

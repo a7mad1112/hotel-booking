@@ -4,29 +4,41 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-      <UserSecretsId>ff58abff-0096-47cd-997f-5007096be7b5</UserSecretsId>
-  </PropertyGroup>
+        <UserSecretsId>ff58abff-0096-47cd-997f-5007096be7b5</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.31" />
+        <PackageReference Include="FluentValidation" Version="12.1.1"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.31"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.31">
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-          <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Scrutor" Version="5.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+
+        <PackageReference Include="Scrutor" Version="5.0.0"/>
+
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
+        <PackageReference Include="Elastic.Serilog.Sinks" Version="9.0.0"/>
+
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\HotelBooking.Application\HotelBooking.Application.csproj" />
-      <ProjectReference Include="..\HotelBooking.Infrastructure\HotelBooking.Infrastructure.csproj" />
+        <ProjectReference Include="..\HotelBooking.Application\HotelBooking.Application.csproj"/>
+        <ProjectReference Include="..\HotelBooking.Infrastructure\HotelBooking.Infrastructure.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Admin\" />
-      <Folder Include="Features\Authentication\" />
-      <Folder Include="Features\Bookings\" />
+        <Folder Include="Features\Admin\"/>
+        <Folder Include="Features\Authentication\"/>
+        <Folder Include="Features\Bookings\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

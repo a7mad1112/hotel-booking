@@ -3,6 +3,7 @@ using HotelBooking.Application.Features.Payments.FailPayment;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotelBooking.Tests.Unit.Features.Payments.FailPayment;
 
@@ -41,7 +42,7 @@ public class FailPaymentServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(payment);
 
-        var service = new FailPaymentService(paymentRepository.Object);
+        var service = new FailPaymentService(paymentRepository.Object, NullLogger<FailPaymentService>.Instance);
 
         // Act
         var result = await service.FailAsync("cs_test_123", CancellationToken.None);

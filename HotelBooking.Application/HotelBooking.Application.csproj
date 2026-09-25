@@ -7,18 +7,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\HotelBooking.Domain\HotelBooking.Domain.csproj" />
+        <ProjectReference Include="..\HotelBooking.Domain\HotelBooking.Domain.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Admin\" />
+        <Folder Include="Features\Admin\"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="FluentValidation" Version="12.1.1" />
-      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
-      <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.30" />
-      <PackageReference Include="Scrutor" Version="5.0.0" />
+        <PackageReference Include="FluentValidation" Version="12.1.1"/>
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1"/>
+        <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.30"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2"/>
+        <PackageReference Include="Scrutor" Version="5.0.0"/>
     </ItemGroup>
 
 </Project>

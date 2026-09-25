@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace HotelBooking.Application.Features.Bookings.CreateBooking;
 
@@ -15,5 +15,9 @@ public sealed class CreateBookingValidator : AbstractValidator<CreateBookingRequ
         RuleFor(x => x.CheckOutDate)
             .NotEmpty()
             .GreaterThan(x => x.CheckInDate);
+
+        RuleFor(x => x.SpecialRequests)
+            .MaximumLength(1000)
+            .When(x => !string.IsNullOrWhiteSpace(x.SpecialRequests));
     }
 }

@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Email;
+using HotelBooking.Application.Common.Email;
 using HotelBooking.Application.Common.Invoicing;
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Authentication.Login;
@@ -33,7 +33,13 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
         {
-            options.UseNpgsql(connectionString);
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(5),
+                    errorCodesToAdd: null);
+            });
 
             options.AddInterceptors(serviceProvider.GetRequiredService<AuditableEntityInterceptor>());
         });
@@ -41,15 +47,16 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
         services.Scan(scan => scan
-            .FromAssemblyOf<AssemblyReference>()
-            .AddClasses(classes =>
-                classes.AssignableTo<IScopedService>())
-            .AsImplementedInterfaces()
-            .WithScopedLifetime()
-            .AddClasses(classes =>
-                classes.AssignableTo<ISingletonService>())
-            .AsImplementedInterfaces()
-            .WithSingletonLifetime());
+            .FromAssemblies(AssemblyReference.Assembly)
+            .AddClasses(classes => classes.AssignableTo<ITransientService>(), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithTransientLifetime()
+            .AddClasses(classes => classes.AssignableTo<IScopedService>(), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithScopedLifetime()
+            .AddClasses(classes => classes.AssignableTo<ISingletonService>(), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithSingletonLifetime());
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 

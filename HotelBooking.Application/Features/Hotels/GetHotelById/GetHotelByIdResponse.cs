@@ -1,4 +1,4 @@
-﻿namespace HotelBooking.Application.Features.Hotels.GetHotelById;
+namespace HotelBooking.Application.Features.Hotels.GetHotelById;
 
 public sealed class GetHotelByIdResponse
 {
@@ -18,4 +18,5 @@ public sealed class GetHotelByIdResponse
     public List<HotelImageResponse> Images { get; set; } = [];
     public List<HotelRoomResponse> Rooms { get; set; } = [];
     public List<HotelReviewResponse> Reviews { get; set; } = [];
+    public List<HotelAmenityResponse> Amenities { get; set; } = [];
 }

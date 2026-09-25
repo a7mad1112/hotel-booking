@@ -5,6 +5,7 @@ using HotelBooking.Application.Features.Payments.ConfirmPayment;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
 using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotelBooking.Tests.Unit.Features.Payments.ConfirmPayment;
 
@@ -85,7 +86,8 @@ public class ConfirmPaymentServiceTests
         var service = new ConfirmPaymentService(
             paymentRepository.Object,
             invoiceGenerator.Object,
-            emailSender.Object);
+            emailSender.Object,
+            NullLogger<ConfirmPaymentService>.Instance);
 
         // Act
         var result = await service.ConfirmAsync(

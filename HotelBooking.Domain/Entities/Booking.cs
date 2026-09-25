@@ -1,4 +1,4 @@
-﻿using HotelBooking.Domain.Common;
+using HotelBooking.Domain.Common;
 using HotelBooking.Domain.Enums;
 
 namespace HotelBooking.Domain.Entities;
@@ -11,6 +11,7 @@ public class Booking : AuditableEntity
     public DateTime CheckOutDate { get; set; }
     public decimal TotalPrice { get; set; }
     public BookingStatus Status { get; set; }
+    public string? SpecialRequests { get; set; }
 
     public User User { get; set; } = null!;
     public Room Room { get; set; } = null!;

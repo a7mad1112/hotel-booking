@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Features.Hotels;
+using HotelBooking.Application.Features.Hotels;
 using HotelBooking.Application.Features.Hotels.GetHotelById;
 using HotelBooking.Domain.Entities;
 using Moq;
@@ -43,7 +43,20 @@ public class GetHotelByIdServiceTests
 
                     Images = [],
                     Rooms = [],
-                    Reviews = []
+                    Reviews = [],
+                    HotelAmenities =
+                    [
+                        new HotelAmenity
+                        {
+                            AmenityId = 10,
+                            Amenity = new Amenity
+                            {
+                                Id = 10,
+                                Name = "Free WiFi",
+                                Description = "High-speed internet"
+                            }
+                        }
+                    ]
                 });
 
         var service = new GetHotelByIdService(repository.Object);
@@ -78,5 +91,10 @@ public class GetHotelByIdServiceTests
         Assert.Empty(result.Value.Images);
         Assert.Empty(result.Value.Rooms);
         Assert.Empty(result.Value.Reviews);
+
+        Assert.Single(result.Value.Amenities);
+        Assert.Equal(10, result.Value.Amenities[0].Id);
+        Assert.Equal("Free WiFi", result.Value.Amenities[0].Name);
+        Assert.Equal("High-speed internet", result.Value.Amenities[0].Description);
     }
 }

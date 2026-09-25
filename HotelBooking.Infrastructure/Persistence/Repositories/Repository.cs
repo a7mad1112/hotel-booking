@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Domain.Common;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +16,7 @@ public class Repository<TEntity> : IRepository<TEntity>, IScopedService
     }
 
 
-    public async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public virtual async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await DbContext
             .Set<TEntity>()
@@ -52,7 +52,7 @@ public class Repository<TEntity> : IRepository<TEntity>, IScopedService
     }
 
 
-    public async Task SaveChangesAsync(CancellationToken cancellationToken)
+    public virtual async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         await DbContext.SaveChangesAsync(cancellationToken);
     }

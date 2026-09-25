@@ -12,32 +12,28 @@ public class AuthController : ControllerBase
 {
     private readonly RegisterService _registerService;
     private readonly LoginService _loginService;
-
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         RegisterService registerService,
-        LoginService loginService)
+        LoginService loginService,
+        ILogger<AuthController> logger)
     {
         _registerService = registerService;
         _loginService = loginService;
+        _logger = logger;
     }
-
 
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<ActionResult<RegisterResponse>> Register(
-        RegisterRequest request,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<RegisterResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
-        var result =
-            await _registerService.RegisterAsync(
-                request.Email,
-                request.Password,
-                cancellationToken);
-
+        var result = await _registerService.RegisterAsync(request.Email, request.Password, cancellationToken);
 
         if (!result.IsSuccess)
         {
+            _logger.LogWarning("User registration request failed.");
+
             return Conflict(new
             {
                 statusCode = StatusCodes.Status409Conflict,
@@ -45,35 +41,27 @@ public class AuthController : ControllerBase
             });
         }
 
-
         var user = result.Value!;
 
+        _logger.LogInformation("User registration request completed successfully. UserId {UserId}", user.Id);
 
-        return StatusCode(
-            StatusCodes.Status201Created,
-            new RegisterResponse
-            {
-                Id = user.Id,
-                Email = user.Email
-            });
+        return StatusCode(StatusCodes.Status201Created, new RegisterResponse
+        {
+            Id = user.Id,
+            Email = user.Email
+        });
     }
-
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<ActionResult<LoginResponse>> Login(
-        LoginRequest request,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<LoginResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
     {
-        var result =
-            await _loginService.LoginAsync(
-                request.Email,
-                request.Password,
-                cancellationToken);
-
+        var result = await _loginService.LoginAsync(request.Email, request.Password, cancellationToken);
 
         if (!result.IsSuccess)
         {
+            _logger.LogWarning("Login request failed.");
+
             return Unauthorized(new
             {
                 statusCode = StatusCodes.Status401Unauthorized,
@@ -81,10 +69,10 @@ public class AuthController : ControllerBase
             });
         }
 
+        _logger.LogInformation("Login request completed successfully.");
 
         return Ok(result.Value);
     }
-
 
     [Authorize]
     [HttpGet("me")]
@@ -92,14 +80,11 @@ public class AuthController : ControllerBase
     {
         return Ok(new
         {
-            id = User.FindFirstValue(
-                ClaimTypes.NameIdentifier),
+            id = User.FindFirstValue(ClaimTypes.NameIdentifier),
 
-            email = User.FindFirstValue(
-                ClaimTypes.Email),
+            email = User.FindFirstValue(ClaimTypes.Email),
 
-            role = User.FindFirstValue(
-                ClaimTypes.Role)
+            role = User.FindFirstValue(ClaimTypes.Role)
         });
     }
 }

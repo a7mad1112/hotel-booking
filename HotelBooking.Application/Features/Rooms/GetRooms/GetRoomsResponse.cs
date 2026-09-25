@@ -1,4 +1,4 @@
-﻿namespace HotelBooking.Application.Features.Rooms.GetRooms;
+namespace HotelBooking.Application.Features.Rooms.GetRooms;
 
 public sealed class GetRoomsResponse
 {
@@ -12,4 +12,6 @@ public sealed class GetRoomsResponse
     public int AdultsCapacity { get; set; }
     public int ChildrenCapacity { get; set; }
     public bool Availability { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 }

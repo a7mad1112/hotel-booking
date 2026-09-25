@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Features.Search.Hotels;
+using HotelBooking.Application.Features.Search.Hotels;
 
 namespace HotelBooking.Tests.Unit.Features.Search.Hotels;
 
@@ -133,6 +133,32 @@ public class SearchHotelsValidatorTests
         {
             MinStarRating = 5,
             MaxStarRating = 3
+        };
+
+        var result = await _validator.ValidateAsync(request);
+
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public async Task Validate_SearchTermValid_IsValid()
+    {
+        var request = new SearchHotelsRequest
+        {
+            SearchTerm = "Grand Luxury Hotel"
+        };
+
+        var result = await _validator.ValidateAsync(request);
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public async Task Validate_SearchTermTooLong_IsInvalid()
+    {
+        var request = new SearchHotelsRequest
+        {
+            SearchTerm = new string('A', 101)
         };
 
         var result = await _validator.ValidateAsync(request);

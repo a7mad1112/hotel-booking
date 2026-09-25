@@ -1,0 +1,98 @@
+﻿services:
+
+  postgres:
+    image: postgres:18
+    container_name: hotelbooking-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: HotelBooking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_dev_password
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.22
+    container_name: hotelbooking-elasticsearch
+    restart: unless-stopped
+
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+    ports:
+      - "9200:9200"
+
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.19.22
+    container_name: hotelbooking-kibana
+    restart: unless-stopped
+
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+
+    ports:
+      - "5601:5601"
+
+    depends_on:
+      - elasticsearch
+
+
+  api:
+    build:
+      context: .
+      dockerfile: HotelBooking.API/Dockerfile
+
+    container_name: hotelbooking-api
+    restart: unless-stopped
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=HotelBooking;Username=postgres;Password=postgres_dev_password
+
+      Elasticsearch__Url: http://elasticsearch:9200
+
+      Jwt__SecretKey: ${JWT_SECRET_KEY}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__ExpirationMinutes: 60
+
+      Cloudinary__CloudName: ${CLOUDINARY_CLOUD_NAME}
+      Cloudinary__ApiKey: ${CLOUDINARY_API_KEY}
+      Cloudinary__ApiSecret: ${CLOUDINARY_API_SECRET}
+
+      Stripe__SecretKey: ${STRIPE_SECRET_KEY}
+      Stripe__WebhookSecret: ${STRIPE_WEBHOOK_SECRET}
+
+      Email__Host: ${EMAIL_HOST}
+      Email__Port: ${EMAIL_PORT}
+      Email__Username: ${EMAIL_USERNAME}
+      Email__Password: ${EMAIL_PASSWORD}
+      Email__FromEmail: ${EMAIL_FROM_EMAIL}
+      Email__FromName: ${EMAIL_FROM_NAME}
+      Email__UseSsl: ${EMAIL_USE_SSL}
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      - postgres
+      - elasticsearch
+
+
+volumes:
+  postgres_data:
+  elasticsearch_data:

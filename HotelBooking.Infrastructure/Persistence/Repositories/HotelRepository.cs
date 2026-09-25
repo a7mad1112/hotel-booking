@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Hotels;
 using HotelBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -17,16 +17,24 @@ public sealed class HotelRepository
     public async Task<(List<Hotel> Items, int TotalCount)> GetPagedAsync(
         int page,
         int pageSize,
+        string? search,
         CancellationToken cancellationToken)
     {
-        var query = DbContext.Hotels
+        IQueryable<Hotel> query = DbContext.Hotels
             .AsNoTracking()
             .Include(x => x.City)
-            .Include(x => x.Owner);
+            .Include(x => x.Owner)
+            .Include(x => x.Rooms);
 
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var trimmed = search.Trim();
+            query = query.Where(x => EF.Functions.ILike(x.Name, $"%{trimmed}%") ||
+                                     EF.Functions.ILike(x.City.Name, $"%{trimmed}%") ||
+                                     EF.Functions.ILike(x.Location, $"%{trimmed}%"));
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
-
 
         var items =
             await query
@@ -47,11 +55,14 @@ public sealed class HotelRepository
         return await DbContext.Hotels
             .AsNoTracking()
             .Include(x => x.City)
+            .Include(x => x.Owner)
             .Include(x => x.Images)
             .Include(x => x.Rooms)
             .ThenInclude(x => x.RoomType)
             .Include(x => x.Rooms)
             .ThenInclude(x => x.Images)
+            .Include(x => x.HotelAmenities)
+            .ThenInclude(x => x.Amenity)
             .Include(x => x.Reviews)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using HotelBooking.API.Authorization;
 using HotelBooking.API.Features.Hotels.UploadHotelImage;
 using HotelBooking.Application.Common.Pagination;
@@ -105,11 +105,13 @@ public class HotelsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResult<GetHotelsResponse>>> GetAll(
         [FromQuery] PaginationRequest request,
+        [FromQuery] string? search,
         CancellationToken cancellationToken)
     {
         var hotels =
             await _getHotelsService.GetAllAsync(
                 request,
+                search,
                 cancellationToken);
 
 

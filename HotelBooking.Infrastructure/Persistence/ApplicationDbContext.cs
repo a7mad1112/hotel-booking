@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using HotelBooking.Domain.Entities;
 
 namespace HotelBooking.Infrastructure.Persistence;
@@ -25,7 +25,8 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AssemblyReference).Assembly);
+        modelBuilder.HasPostgresExtension("btree_gist");
+        modelBuilder.ApplyConfigurationsFromAssembly(AssemblyReference.Assembly);
         base.OnModelCreating(modelBuilder);
     }
 }

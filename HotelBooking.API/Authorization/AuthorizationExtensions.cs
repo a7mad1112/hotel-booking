@@ -1,4 +1,4 @@
-﻿using HotelBooking.Domain.Enums;
+using HotelBooking.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 
 namespace HotelBooking.API.Authorization;
@@ -64,6 +64,9 @@ public static class AuthorizationExtensions
                         nameof(UserRole.Admin),
                         nameof(UserRole.Owner));
                 });
+
+            options.AddPolicy(AuthorizationPolicies.ManageAmenities,
+                policy => { policy.RequireRole(nameof(UserRole.Admin)); });
         });
 
         return services;

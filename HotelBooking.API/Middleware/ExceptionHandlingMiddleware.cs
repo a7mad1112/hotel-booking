@@ -1,4 +1,4 @@
-﻿using System.Net;
+﻿using System.Security.Claims;
 using System.Text.Json;
 using HotelBooking.API.Models;
 
@@ -9,9 +9,7 @@ public class ExceptionHandlingMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(
-        RequestDelegate next,
-        ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -25,21 +23,23 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception exception)
         {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             _logger.LogError(
                 exception,
-                "Unhandled exception occurred while processing the request.");
+                "Unhandled exception while processing {RequestMethod} {RequestPath}. UserId: {UserId}",
+                context.Request.Method,
+                context.Request.Path,
+                userId ?? "anonymous");
 
             await HandleExceptionAsync(context, exception);
         }
     }
 
-    private static async Task HandleExceptionAsync(
-        HttpContext context,
-        Exception exception)
+    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var statusCode = exception switch
         {
-            KeyNotFoundException => StatusCodes.Status404NotFound,
             ArgumentException => StatusCodes.Status400BadRequest,
             UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
             _ => StatusCodes.Status500InternalServerError
@@ -58,7 +58,6 @@ public class ExceptionHandlingMiddleware
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
 
-        await context.Response.WriteAsync(
-            JsonSerializer.Serialize(response));
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 }

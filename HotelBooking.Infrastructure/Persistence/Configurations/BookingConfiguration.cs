@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Infrastructure.Persistence.Configurations.Extensions;
@@ -37,6 +37,9 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.Property(x => x.CheckOutDate)
             .IsRequired();
+
+        builder.Property(x => x.SpecialRequests)
+            .HasMaxLength(1000);
 
         builder.ConfigureAuditProperties();
     }

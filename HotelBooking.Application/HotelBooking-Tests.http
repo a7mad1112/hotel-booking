@@ -1,0 +1,411 @@
+﻿@baseUrl = http://localhost:8080
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJzbW9rZS10ZXN0QGV4YW1wbGUuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQ3VzdG9tZXIiLCJleHAiOjE3OTAzMjUwMTgsImlzcyI6IkhvdGVsQm9va2luZy5BUEkiLCJhdWQiOiJIb3RlbEJvb2tpbmcuQ2xpZW50In0.w4KxeVgsqS6XDHYM2KXBgfsv6ND6LsySxrM1dRtGzv0
+
+### ============================================================
+### AUTHENTICATION
+### ============================================================
+
+### Register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "smoke-test@example.com",
+  "password": "Password123!"
+}
+
+### Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "smoke-test@example.com",
+  "password": "Password123!"
+}
+
+### Current user
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### CITIES
+### ============================================================
+
+GET {{baseUrl}}/api/cities?page=1&pageSize=10
+
+### 
+
+GET {{baseUrl}}/api/cities/1
+
+### 
+
+GET {{baseUrl}}/api/cities/999999
+
+### 
+
+GET {{baseUrl}}/api/cities/trending
+
+### Requires ManageCities
+POST {{baseUrl}}/api/cities
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Smoke Test City",
+  "country": "Jordan"
+}
+
+### Requires ManageCities
+PUT {{baseUrl}}/api/cities/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Smoke City",
+  "country": "Jordan"
+}
+
+### Requires ManageCities
+DELETE {{baseUrl}}/api/cities/999999
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### HOTELS
+### ============================================================
+
+GET {{baseUrl}}/api/hotels?page=1&pageSize=10
+
+### 
+
+GET {{baseUrl}}/api/hotels/1
+
+###
+
+GET {{baseUrl}}/api/hotels/999999
+
+### 
+
+GET {{baseUrl}}/api/hotels/featured
+
+### Requires ManageHotels
+POST {{baseUrl}}/api/hotels
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Smoke Test Hotel",
+  "description": "Hotel created for API smoke testing.",
+  "address": "Test Street",
+  "cityId": 1,
+  "ownerId": 1
+}
+
+### Requires authentication
+PUT {{baseUrl}}/api/hotels/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Smoke Hotel",
+  "description": "Updated for API smoke testing.",
+  "address": "Updated Test Street",
+  "cityId": 1
+}
+
+### Requires authentication
+DELETE {{baseUrl}}/api/hotels/999999
+Authorization: Bearer {{token}}
+
+### Requires authentication. Put test.jpg beside this .http file.
+POST {{baseUrl}}/api/hotels/1/images
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=HotelImageBoundary
+
+--HotelImageBoundary
+Content-Disposition: form-data; name="image"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test.jpg
+--HotelImageBoundary--
+
+### Requires authentication
+DELETE {{baseUrl}}/api/hotels/1/images/999999
+Authorization: Bearer {{token}}
+
+###
+PUT http://localhost:5032/api/hotels/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Smoke Hotel",
+  "description": "Updated for API smoke testing.",
+  "location": "Updated Test Street",
+  "starRating": 4,
+  "cityId": 1
+}
+
+### ============================================================
+### ROOM TYPES
+### ============================================================
+
+GET {{baseUrl}}/api/room-types?page=1&pageSize=10
+
+### 
+
+GET {{baseUrl}}/api/room-types/1
+
+###
+
+GET {{baseUrl}}/api/room-types/999999
+
+### Requires ManageRoomTypes
+POST {{baseUrl}}/api/room-types
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Smoke Test Room Type"
+}
+
+### Requires ManageRoomTypes
+PUT {{baseUrl}}/api/room-types/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Smoke Room Type"
+}
+
+### Requires ManageRoomTypes
+DELETE {{baseUrl}}/api/room-types/999999
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### ROOMS
+### ============================================================
+
+GET {{baseUrl}}/api/rooms?page=1&pageSize=10
+
+###
+
+GET {{baseUrl}}/api/rooms/1
+
+###
+
+GET {{baseUrl}}/api/rooms/999999
+
+### Requires ManageRooms
+POST {{baseUrl}}/api/rooms
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "hotelId": 1,
+  "roomTypeId": 1,
+  "roomNumber": "SMOKE-101",
+  "pricePerNight": 100,
+  "availability": true
+}
+
+### Requires authentication
+PUT {{baseUrl}}/api/rooms/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "roomTypeId": 1,
+  "roomNumber": "UPDATED-101",
+  "AdultsCapacity": 2,
+  "pricePerNight": 120,
+  "availability": true
+}
+
+### Requires authentication
+DELETE {{baseUrl}}/api/rooms/999999
+Authorization: Bearer {{token}}
+
+### Requires authentication. Put test.jpg beside this .http file.
+POST {{baseUrl}}/api/rooms/1/images
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=RoomImageBoundary
+
+--RoomImageBoundary
+Content-Disposition: form-data; name="image"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test.jpg
+--RoomImageBoundary--
+
+### Requires authentication
+DELETE {{baseUrl}}/api/rooms/1/images/999999
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### DEALS
+### ============================================================
+
+GET {{baseUrl}}/api/deals?page=1&pageSize=10
+
+### 
+
+GET {{baseUrl}}/api/deals/1
+
+###
+
+GET {{baseUrl}}/api/deals/999999
+
+### Requires ManageDeals
+POST {{baseUrl}}/api/deals
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "hotelId": 1,
+  "discountPercentage": 10,
+  "startDate": "2026-10-01T00:00:00",
+  "endDate": "2026-12-31T00:00:00"
+}
+
+### Requires ManageDeals
+PUT {{baseUrl}}/api/deals/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "hotelId": 1,
+  "discountPercentage": 15,
+  "startDate": "2026-10-01T00:00:00",
+  "endDate": "2026-12-31T00:00:00"
+}
+
+### Requires ManageDeals
+DELETE {{baseUrl}}/api/deals/999999
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### SEARCH
+### ============================================================
+
+GET {{baseUrl}}/api/search/hotels?page=1&pageSize=10
+
+GET {{baseUrl}}/api/search/hotels?name=hotel&cityId=1&page=1&pageSize=10
+
+
+### ============================================================
+### BOOKINGS / PAYMENTS
+### ============================================================
+
+### Requires CreateBooking
+POST {{baseUrl}}/api/bookings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "roomId": 1,
+  "checkInDate": "2026-10-01",
+  "checkOutDate": "2026-10-04"
+}
+
+### Requires CreateBooking
+GET {{baseUrl}}/api/bookings/1/checkout
+Authorization: Bearer {{token}}
+
+### Intentionally missing Idempotency-Key; expected 400
+POST {{baseUrl}}/api/bookings/1/payment
+Authorization: Bearer {{token}}
+
+### Requires CreateBooking
+POST {{baseUrl}}/api/bookings/1/payment
+Authorization: Bearer {{token}}
+Idempotency-Key: smoke-test-payment-001
+
+### Repeat the same idempotency key
+POST {{baseUrl}}/api/bookings/1/payment
+Authorization: Bearer {{token}}
+Idempotency-Key: smoke-test-payment-001
+
+
+### ============================================================
+### STRIPE WEBHOOK
+### ============================================================
+
+### Missing Stripe-Signature; expected 400
+POST {{baseUrl}}/api/payments/stripe/webhook
+Content-Type: application/json
+
+{}
+
+### Invalid Stripe-Signature; expected 400
+POST {{baseUrl}}/api/payments/stripe/webhook
+Content-Type: application/json
+Stripe-Signature: invalid
+
+{}
+
+
+### ============================================================
+### USERS
+### ============================================================
+
+### Requires authentication
+GET {{baseUrl}}/api/users/history
+Authorization: Bearer {{token}}
+
+
+### ============================================================
+### UNAUTHORIZED / VALIDATION SMOKE TESTS
+### ============================================================
+
+GET {{baseUrl}}/api/auth/me
+
+###
+
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{}
+
+###
+
+POST {{baseUrl}}/api/cities
+Content-Type: application/json
+
+{}
+
+###
+
+POST {{baseUrl}}/api/rooms
+Content-Type: application/json
+
+{}
+
+###
+
+POST {{baseUrl}}/api/deals
+Content-Type: application/json
+
+{}
+
+###
+
+POST {{baseUrl}}/api/room-types
+Content-Type: application/json
+
+{}
+
+###
+
+POST {{baseUrl}}/api/hotels
+Content-Type: application/json
+
+{}
+
+###
+
+GET http://localhost:5032/api/hotels?page=1&pageSize=10
