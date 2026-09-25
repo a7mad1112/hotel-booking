@@ -1,8 +1,10 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Exceptions;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Bookings;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
 
@@ -40,5 +42,24 @@ public sealed class BookingRepository
             .ThenInclude(x => x.City)
             .FirstOrDefaultAsync(x => x.Id == bookingId && x.UserId == userId,
                 cancellationToken);
+    }
+
+    public override async Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await base.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsBookingOverlapViolation(ex))
+        {
+            throw new OverlappingBookingException();
+        }
+    }
+
+    private static bool IsBookingOverlapViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is PostgresException postgresException
+               && (postgresException.SqlState == PostgresErrorCodes.ExclusionViolation
+                   || postgresException.ConstraintName == "no_overlapping_room_bookings");
     }
 }

@@ -25,6 +25,7 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("btree_gist");
         modelBuilder.ApplyConfigurationsFromAssembly(AssemblyReference.Assembly);
         base.OnModelCreating(modelBuilder);
     }

@@ -1,4 +1,5 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Exceptions;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Bookings;
 using HotelBooking.Application.Features.Deals;
@@ -112,7 +113,19 @@ public sealed class CreateBookingService : IScopedService
 
         await _bookingRepository.AddAsync(booking, cancellationToken);
 
-        await _bookingRepository.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _bookingRepository.SaveChangesAsync(cancellationToken);
+        }
+        catch (OverlappingBookingException)
+        {
+            _logger.LogWarning(
+                "Booking creation failed due to overlapping booking conflict during persistence. RoomId {RoomId}, UserId {UserId}",
+                room.Id,
+                currentUserId);
+
+            return ResultOfT<CreateBookingResponse>.Failure("Room is not available for the selected dates.");
+        }
 
         _logger.LogInformation(
             "Booking created successfully. BookingId {BookingId}, UserId {UserId}, RoomId {RoomId}, TotalPrice {TotalPrice}",
