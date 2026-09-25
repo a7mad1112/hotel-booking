@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace HotelBooking.Application.Features.Search.Hotels;
 
@@ -7,6 +7,10 @@ public sealed class SearchHotelsValidator
 {
     public SearchHotelsValidator()
     {
+        RuleFor(x => x.SearchTerm)
+            .MaximumLength(100)
+            .When(x => !string.IsNullOrWhiteSpace(x.SearchTerm));
+
         RuleFor(x => x.CityId)
             .GreaterThan(0)
             .When(x => x.CityId.HasValue);

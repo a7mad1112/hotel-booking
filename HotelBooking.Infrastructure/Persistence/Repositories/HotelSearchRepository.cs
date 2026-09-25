@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Search;
 using HotelBooking.Application.Features.Search.Hotels;
 using HotelBooking.Domain.Enums;
@@ -22,6 +22,15 @@ public sealed class HotelSearchRepository : IHotelSearchRepository, IScopedServi
         CancellationToken cancellationToken)
     {
         var hotels = _context.Hotels.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var term = request.SearchTerm.Trim();
+            hotels = hotels.Where(x =>
+                EF.Functions.ILike(x.Name, $"%{term}%") ||
+                EF.Functions.ILike(x.City.Name, $"%{term}%") ||
+                EF.Functions.ILike(x.Location, $"%{term}%"));
+        }
 
         if (request.CityId.HasValue)
         {
