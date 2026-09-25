@@ -1,5 +1,8 @@
-﻿namespace HotelBooking.Infrastructure;
+using System.Reflection;
 
-public sealed class AssemblyReference
+namespace HotelBooking.Infrastructure;
+
+public static class AssemblyReference
 {
+    public static readonly Assembly Assembly = typeof(AssemblyReference).Assembly;
 }

@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -13,7 +13,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
         services.Scan(scan => scan
-            .FromAssembliesOf(typeof(AssemblyReference))
+            .FromAssemblies(AssemblyReference.Assembly)
             .AddClasses(classes => classes.AssignableTo<IScopedService>())
             .AsSelf()
             .WithScopedLifetime());

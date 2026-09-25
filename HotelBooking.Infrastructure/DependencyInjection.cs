@@ -47,7 +47,7 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
         services.Scan(scan => scan
-            .FromAssemblyOf<AssemblyReference>()
+            .FromAssemblies(AssemblyReference.Assembly)
             .AddClasses(classes =>
                 classes.AssignableTo<IScopedService>())
             .AsImplementedInterfaces()

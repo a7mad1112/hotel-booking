@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -9,11 +9,8 @@ public static class ValidationExtensions
     public static IServiceCollection AddValidation(
         this IServiceCollection services)
     {
-        services.AddValidatorsFromAssemblyContaining<
-            HotelBooking.Application.AssemblyReference>();
-
-        services.AddValidatorsFromAssemblyContaining<
-            HotelBooking.API.AssemblyReference>();
+        services.AddValidatorsFromAssembly(HotelBooking.Application.AssemblyReference.Assembly);
+        services.AddValidatorsFromAssembly(HotelBooking.API.AssemblyReference.Assembly);
 
         services.AddScoped<FluentValidationFilter>();
 
