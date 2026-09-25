@@ -14,9 +14,15 @@ public static class DependencyInjection
 
         services.Scan(scan => scan
             .FromAssemblies(AssemblyReference.Assembly)
-            .AddClasses(classes => classes.AssignableTo<IScopedService>())
-            .AsSelf()
-            .WithScopedLifetime());
+            .AddClasses(classes => classes.AssignableTo<ITransientService>(), publicOnly: false)
+                .AsSelfWithInterfaces()
+                .WithTransientLifetime()
+            .AddClasses(classes => classes.AssignableTo<IScopedService>(), publicOnly: false)
+                .AsSelfWithInterfaces()
+                .WithScopedLifetime()
+            .AddClasses(classes => classes.AssignableTo<ISingletonService>(), publicOnly: false)
+                .AsSelfWithInterfaces()
+                .WithSingletonLifetime());
 
         return services;
     }

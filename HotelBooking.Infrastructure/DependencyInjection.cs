@@ -48,14 +48,15 @@ public static class DependencyInjection
 
         services.Scan(scan => scan
             .FromAssemblies(AssemblyReference.Assembly)
-            .AddClasses(classes =>
-                classes.AssignableTo<IScopedService>())
-            .AsImplementedInterfaces()
-            .WithScopedLifetime()
-            .AddClasses(classes =>
-                classes.AssignableTo<ISingletonService>())
-            .AsImplementedInterfaces()
-            .WithSingletonLifetime());
+            .AddClasses(classes => classes.AssignableTo<ITransientService>(), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithTransientLifetime()
+            .AddClasses(classes => classes.AssignableTo<IScopedService>(), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithScopedLifetime()
+            .AddClasses(classes => classes.AssignableTo<ISingletonService>(), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithSingletonLifetime());
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 
