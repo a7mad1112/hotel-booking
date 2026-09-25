@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using HotelBooking.API.Authorization;
 using HotelBooking.Application.Features.Bookings.Checkout;
 using HotelBooking.Application.Features.Bookings.CreateBooking;
@@ -6,6 +6,8 @@ using HotelBooking.Application.Features.Payments.ConfirmPayment;
 using HotelBooking.Application.Features.Payments.CreatePayment;
 using HotelBooking.Application.Features.Payments.FailPayment;
 using HotelBooking.Infrastructure.ExternalServices.Stripe;
+using HotelBooking.Application.Features.Bookings.GetBookingInvoice;
+using HotelBooking.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -23,6 +25,7 @@ public class BookingsController : ControllerBase
     private readonly CreatePaymentService _createPaymentService;
     private readonly ConfirmPaymentService _confirmPaymentService;
     private readonly FailPaymentService _failPaymentService;
+    private readonly GetBookingInvoiceService _getBookingInvoiceService;
     private readonly StripeOptions _stripeOptions;
     private readonly ILogger<BookingsController> _logger;
 
@@ -32,6 +35,7 @@ public class BookingsController : ControllerBase
         CreatePaymentService createPaymentService,
         ConfirmPaymentService confirmPaymentService,
         FailPaymentService failPaymentService,
+        GetBookingInvoiceService getBookingInvoiceService,
         IOptions<StripeOptions> stripeOptions,
         ILogger<BookingsController> logger)
     {
@@ -40,6 +44,7 @@ public class BookingsController : ControllerBase
         _createPaymentService = createPaymentService;
         _confirmPaymentService = confirmPaymentService;
         _failPaymentService = failPaymentService;
+        _getBookingInvoiceService = getBookingInvoiceService;
         _stripeOptions = stripeOptions.Value;
         _logger = logger;
     }
@@ -276,5 +281,44 @@ public class BookingsController : ControllerBase
         }
 
         return Ok(result.Value);
+    }
+
+    [Authorize]
+    [HttpGet("{id:int}/invoice")]
+    public async Task<IActionResult> GetInvoice(int id, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdClaim, out var currentUserId))
+        {
+            return Unauthorized();
+        }
+
+        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+
+        var result = await _getBookingInvoiceService.GetInvoiceAsync(id, currentUserId, isAdmin, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Booking not found.")
+            {
+                return NotFound(new
+                {
+                    message = result.Error
+                });
+            }
+
+            if (result.Error == "You are not allowed to access this invoice.")
+            {
+                return Forbid();
+            }
+
+            return BadRequest(new
+            {
+                message = result.Error
+            });
+        }
+
+        return File(result.Value!.Content, result.Value.ContentType, result.Value.FileName);
     }
 }

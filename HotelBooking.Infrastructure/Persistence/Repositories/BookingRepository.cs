@@ -44,6 +44,17 @@ public sealed class BookingRepository
                 cancellationToken);
     }
 
+    public async Task<Booking?> GetBookingForInvoiceAsync(int bookingId, CancellationToken cancellationToken)
+    {
+        return await DbContext.Bookings
+            .AsNoTracking()
+            .Include(x => x.User)
+            .Include(x => x.Room)
+            .ThenInclude(x => x.Hotel)
+            .ThenInclude(x => x.City)
+            .FirstOrDefaultAsync(x => x.Id == bookingId, cancellationToken);
+    }
+
     public override async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         try
