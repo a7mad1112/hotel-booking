@@ -7,6 +7,9 @@ using HotelBooking.API.Swagger;
 using HotelBooking.Application;
 using HotelBooking.Infrastructure;
 using Elastic.Serilog.Sinks;
+using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -59,10 +62,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddValidation();
 
 builder.Services
-    .AddControllers(options =>
-    {
-        options.Filters.Add<FluentValidationFilter>();
-    })
+    .AddControllers(options => { options.Filters.Add<FluentValidationFilter>(); })
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -104,6 +104,19 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+
+    var passwordHasher = scope.ServiceProvider
+        .GetRequiredService<IPasswordHasher<User>>();
+
+    await DatabaseSeeder.SeedAsync(
+        dbContext,
+        passwordHasher);
+}
 
 app.UseSerilogRequestLogging(options =>
 {
