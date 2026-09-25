@@ -405,3 +405,7 @@ POST {{baseUrl}}/api/hotels
 Content-Type: application/json
 
 {}
+
+###
+
+GET http://localhost:5032/api/hotels?page=1&pageSize=10

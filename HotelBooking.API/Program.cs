@@ -1,9 +1,12 @@
+using Elastic.Ingest.Elasticsearch;
+using Elastic.Ingest.Elasticsearch.DataStreams;
 using HotelBooking.API.Authorization;
 using HotelBooking.API.Extensions;
 using HotelBooking.API.Middleware;
 using HotelBooking.API.Swagger;
 using HotelBooking.Application;
 using HotelBooking.Infrastructure;
+using Elastic.Serilog.Sinks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -17,12 +20,18 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Application", "HotelBooking.API")
     .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
-    .WriteTo.Console()
-    .WriteTo.File(
-        path: "logs/hotel-booking-.log",
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 30,
-        shared: true)
+    .WriteTo.Elasticsearch(
+        new[]
+        {
+            new Uri(builder.Configuration["Elasticsearch:Url"] ?? "http://localhost:9200")
+        },
+        options =>
+        {
+            options.DataStream = new DataStreamName("logs", "hotelbooking-api",
+                builder.Environment.EnvironmentName.ToLowerInvariant());
+
+            options.BootstrapMethod = BootstrapMethod.Failure;
+        })
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -50,7 +59,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddValidation();
 
 builder.Services
-    .AddControllers(options => { options.Filters.Add<FluentValidationFilter>(); })
+    .AddControllers(options =>
+    {
+        options.Filters.Add<FluentValidationFilter>();
+    })
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -95,18 +107,20 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging(options =>
 {
-    options.MessageTemplate =
-        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
 
     options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
     {
         diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
 
-        diagnosticContext.Set("UserId", httpContext.User.FindFirst(
-            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "anonymous");
+        diagnosticContext.Set("UserId",
+            httpContext.User.FindFirst(
+                System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? "anonymous");
 
-        diagnosticContext.Set("UserRole", httpContext.User.FindFirst(
-            System.Security.Claims.ClaimTypes.Role)?.Value ?? "anonymous");
+        diagnosticContext.Set("UserRole",
+            httpContext.User.FindFirst(
+                System.Security.Claims.ClaimTypes.Role)?.Value ?? "anonymous");
     };
 });
 
@@ -131,6 +145,7 @@ app.MapControllers();
 try
 {
     Log.Information("Hotel Booking API started.");
+
     app.Run();
 }
 catch (Exception exception)
