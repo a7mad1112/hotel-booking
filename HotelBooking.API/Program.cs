@@ -36,6 +36,17 @@ builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment
 
 builder.Services.AddHotelBookingAuthorization();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddValidation();
 
 builder.Services
@@ -108,6 +119,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 
