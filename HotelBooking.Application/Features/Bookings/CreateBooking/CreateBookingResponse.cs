@@ -1,4 +1,4 @@
-﻿using HotelBooking.Domain.Enums;
+using HotelBooking.Domain.Enums;
 
 public sealed class CreateBookingResponse
 {
@@ -25,4 +25,6 @@ public sealed class CreateBookingResponse
     public decimal TotalPrice { get; set; }
 
     public BookingStatus Status { get; set; }
+
+    public string? SpecialRequests { get; set; }
 }

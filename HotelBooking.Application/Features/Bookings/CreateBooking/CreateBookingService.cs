@@ -108,7 +108,10 @@ public sealed class CreateBookingService : IScopedService
             CheckInDate = request.CheckInDate,
             CheckOutDate = request.CheckOutDate,
             TotalPrice = totalPrice,
-            Status = BookingStatus.Pending
+            Status = BookingStatus.Pending,
+            SpecialRequests = string.IsNullOrWhiteSpace(request.SpecialRequests)
+                ? null
+                : request.SpecialRequests.Trim()
         };
 
         await _bookingRepository.AddAsync(booking, cancellationToken);
@@ -157,7 +160,9 @@ public sealed class CreateBookingService : IScopedService
 
                 TotalPrice = booking.TotalPrice,
 
-                Status = booking.Status
+                Status = booking.Status,
+
+                SpecialRequests = booking.SpecialRequests
             });
     }
 }

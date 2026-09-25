@@ -58,7 +58,8 @@ public class CreateBookingServiceTests
         {
             RoomId = 1,
             CheckInDate = new DateTime(2026, 10, 1),
-            CheckOutDate = new DateTime(2026, 10, 4)
+            CheckOutDate = new DateTime(2026, 10, 4),
+            SpecialRequests = "Quiet room on top floor"
         };
 
         // Act
@@ -79,6 +80,7 @@ public class CreateBookingServiceTests
         Assert.Equal(300m, result.Value.TotalPrice);
 
         Assert.Equal(BookingStatus.Pending, result.Value.Status);
+        Assert.Equal("Quiet room on top floor", result.Value.SpecialRequests);
 
         bookingRepository.Verify(
             x => x.AddAsync(
@@ -88,7 +90,8 @@ public class CreateBookingServiceTests
                     booking.CheckInDate == request.CheckInDate &&
                     booking.CheckOutDate == request.CheckOutDate &&
                     booking.TotalPrice == 300m &&
-                    booking.Status == BookingStatus.Pending),
+                    booking.Status == BookingStatus.Pending &&
+                    booking.SpecialRequests == "Quiet room on top floor"),
                 It.IsAny<CancellationToken>()),
             Times.Once);
 
