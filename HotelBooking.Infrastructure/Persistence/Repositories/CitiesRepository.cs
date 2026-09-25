@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Features.Cities;
+using HotelBooking.Application.Features.Cities;
 using HotelBooking.Application.Features.Cities.GetTrendingCities;
 using HotelBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +14,19 @@ public sealed class CitiesRepository : Repository<City>, ICitiesRepository
     public async Task<(List<City> Items, int TotalCount)> GetPagedAsync(
         int page,
         int pageSize,
+        string? search,
         CancellationToken cancellationToken)
     {
-        var query = DbContext.Cities.AsNoTracking();
+        IQueryable<City> query = DbContext.Cities
+            .AsNoTracking()
+            .Include(x => x.Hotels);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var trimmed = search.Trim();
+            query = query.Where(x => EF.Functions.ILike(x.Name, $"%{trimmed}%") ||
+                                     EF.Functions.ILike(x.Country, $"%{trimmed}%"));
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
 

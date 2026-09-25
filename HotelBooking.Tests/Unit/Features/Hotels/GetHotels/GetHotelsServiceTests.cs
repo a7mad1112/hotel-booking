@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Pagination;
+using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Hotels;
 using HotelBooking.Application.Features.Hotels.GetHotels;
 using HotelBooking.Domain.Entities;
@@ -17,6 +17,7 @@ public class GetHotelsServiceTests
             .Setup(x => x.GetPagedAsync(
                 1,
                 10,
+                null,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 (
@@ -62,6 +63,7 @@ public class GetHotelsServiceTests
         var result =
             await service.GetAllAsync(
                 request,
+                null,
                 CancellationToken.None);
 
 
@@ -100,6 +102,7 @@ public class GetHotelsServiceTests
             .Setup(x => x.GetPagedAsync(
                 1,
                 10,
+                null,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 (
@@ -122,6 +125,7 @@ public class GetHotelsServiceTests
         var result =
             await service.GetAllAsync(
                 request,
+                null,
                 CancellationToken.None);
 
 

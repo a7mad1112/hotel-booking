@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Rooms;
 using HotelBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +12,23 @@ public sealed class RoomRepository : Repository<Room>, IRoomRepository, IScopedS
     {
     }
 
-    public async Task<(List<Room> Items, int TotalCount)> GetPagedAsync(int page, int pageSize,
+    public async Task<(List<Room> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? search,
         CancellationToken cancellationToken)
     {
-        var query = DbContext.Rooms
+        IQueryable<Room> query = DbContext.Rooms
             .AsNoTracking()
             .Include(x => x.RoomType)
             .Include(x => x.Hotel);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var trimmed = search.Trim();
+            query = query.Where(x => EF.Functions.ILike(x.RoomNumber, $"%{trimmed}%") ||
+                                     EF.Functions.ILike(x.Hotel.Name, $"%{trimmed}%"));
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
 

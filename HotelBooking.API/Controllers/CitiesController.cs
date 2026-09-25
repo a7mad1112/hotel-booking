@@ -1,4 +1,4 @@
-﻿using HotelBooking.API.Authorization;
+using HotelBooking.API.Authorization;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Cities.CreateCity;
 using HotelBooking.Application.Features.Cities.DeleteCity;
@@ -72,11 +72,13 @@ public class CitiesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResult<GetCitiesResponse>>> GetAll(
         [FromQuery] PaginationRequest request,
+        [FromQuery] string? search,
         CancellationToken cancellationToken)
     {
         var cities =
             await _getCitiesService.GetAllAsync(
                 request,
+                search,
                 cancellationToken);
 
         return Ok(cities);

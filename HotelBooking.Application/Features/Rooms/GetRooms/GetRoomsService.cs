@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Rooms;
 
@@ -13,10 +13,16 @@ public sealed class GetRoomsService : IScopedService
         _repository = repository;
     }
 
-    public async Task<PagedResult<GetRoomsResponse>> GetAllAsync(PaginationRequest request,
+    public async Task<PagedResult<GetRoomsResponse>> GetAllAsync(
+        PaginationRequest request,
+        string? search,
         CancellationToken cancellationToken)
     {
-        var result = await _repository.GetPagedAsync(request.Page, request.PageSize, cancellationToken);
+        var result = await _repository.GetPagedAsync(
+            request.Page,
+            request.PageSize,
+            search,
+            cancellationToken);
 
         return new PagedResult<GetRoomsResponse>
         {
@@ -31,14 +37,14 @@ public sealed class GetRoomsService : IScopedService
                     PricePerNight = room.PricePerNight,
                     AdultsCapacity = room.AdultsCapacity,
                     ChildrenCapacity = room.ChildrenCapacity,
-                    Availability = room.Availability
+                    Availability = room.Availability,
+                    CreatedAt = room.CreatedAt,
+                    UpdatedAt = room.UpdatedAt
                 })
                 .ToList(),
 
             Page = request.Page,
-
             PageSize = request.PageSize,
-
             TotalCount = result.TotalCount
         };
     }

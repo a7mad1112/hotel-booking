@@ -17,16 +17,24 @@ public sealed class HotelRepository
     public async Task<(List<Hotel> Items, int TotalCount)> GetPagedAsync(
         int page,
         int pageSize,
+        string? search,
         CancellationToken cancellationToken)
     {
-        var query = DbContext.Hotels
+        IQueryable<Hotel> query = DbContext.Hotels
             .AsNoTracking()
             .Include(x => x.City)
-            .Include(x => x.Owner);
+            .Include(x => x.Owner)
+            .Include(x => x.Rooms);
 
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var trimmed = search.Trim();
+            query = query.Where(x => EF.Functions.ILike(x.Name, $"%{trimmed}%") ||
+                                     EF.Functions.ILike(x.City.Name, $"%{trimmed}%") ||
+                                     EF.Functions.ILike(x.Location, $"%{trimmed}%"));
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
-
 
         var items =
             await query

@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Domain.Entities;
 
 namespace HotelBooking.Application.Features.Rooms;
@@ -7,7 +7,11 @@ public interface IRoomRepository : IRepository<Room>
 {
     Task<Room?> GetDetailsByIdAsync(int id, CancellationToken cancellationToken);
 
-    Task<(List<Room> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken);
+    Task<(List<Room> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? search,
+        CancellationToken cancellationToken);
 
     Task<bool> HotelExistsAsync(int hotelId, CancellationToken cancellationToken);
 
