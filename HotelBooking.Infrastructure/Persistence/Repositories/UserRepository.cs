@@ -12,19 +12,31 @@ public sealed class UserRepository : Repository<User>, IUserRepository, IScopedS
     {
     }
 
-    public async Task<List<GetBookingHistoryResponse>> GetBookingHistoryAsync(int userId, int count,
-        CancellationToken cancellationToken)
+    public async Task<List<GetBookingHistoryResponse>> GetBookingHistoryAsync(int userId, int count, CancellationToken cancellationToken)
     {
-        var latestBookings = DbContext.Bookings
+        // First determine the latest booking for each hotel.
+        // Only booking IDs are selected here to keep the GroupBy query
+        // simple and avoid EF Core projection issues.
+        var latestBookingIds = await DbContext.Bookings
             .AsNoTracking()
             .Where(x => x.UserId == userId)
             .GroupBy(x => x.Room.HotelId)
             .Select(group => group
                 .OrderByDescending(x => x.CreatedAt)
                 .ThenByDescending(x => x.Id)
-                .First());
+                .Select(x => x.Id)
+                .First())
+            .ToListAsync(cancellationToken);
 
-        return await latestBookings
+        if (latestBookingIds.Count == 0)
+        {
+            return [];
+        }
+
+        // Load the actual booking information separately.
+        var history = await DbContext.Bookings
+            .AsNoTracking()
+            .Where(x => latestBookingIds.Contains(x.Id))
             .OrderByDescending(x => x.CreatedAt)
             .ThenByDescending(x => x.Id)
             .Take(count)
@@ -41,5 +53,7 @@ public sealed class UserRepository : Repository<User>, IUserRepository, IScopedS
                 PricePerNight = x.Room.PricePerNight
             })
             .ToListAsync(cancellationToken);
+
+        return history;
     }
 }

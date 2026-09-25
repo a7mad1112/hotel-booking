@@ -38,7 +38,8 @@ builder.Services.AddHotelBookingAuthorization();
 
 builder.Services.AddValidation();
 
-builder.Services.AddControllers()
+builder.Services
+    .AddControllers(options => { options.Filters.Add<FluentValidationFilter>(); })
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
