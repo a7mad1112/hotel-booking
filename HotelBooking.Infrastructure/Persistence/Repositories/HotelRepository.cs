@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Hotels;
 using HotelBooking.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +47,7 @@ public sealed class HotelRepository
         return await DbContext.Hotels
             .AsNoTracking()
             .Include(x => x.City)
+            .Include(x => x.Owner)
             .Include(x => x.Images)
             .Include(x => x.Rooms)
             .ThenInclude(x => x.RoomType)

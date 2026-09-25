@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Email;
+using HotelBooking.Application.Common.Email;
 using HotelBooking.Application.Common.Invoicing;
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Authentication.Login;
@@ -33,7 +33,13 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
         {
-            options.UseNpgsql(connectionString);
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(5),
+                    errorCodesToAdd: null);
+            });
 
             options.AddInterceptors(serviceProvider.GetRequiredService<AuditableEntityInterceptor>());
         });

@@ -23,6 +23,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Application", "HotelBooking.API")
     .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+    .WriteTo.Console()
     .WriteTo.Elasticsearch(
         new[]
         {
@@ -33,7 +34,7 @@ Log.Logger = new LoggerConfiguration()
             options.DataStream = new DataStreamName("logs", "hotelbooking-api",
                 builder.Environment.EnvironmentName.ToLowerInvariant());
 
-            options.BootstrapMethod = BootstrapMethod.Failure;
+            options.BootstrapMethod = BootstrapMethod.None;
         })
     .CreateLogger();
 
@@ -113,9 +114,11 @@ using (var scope = app.Services.CreateScope())
     var passwordHasher = scope.ServiceProvider
         .GetRequiredService<IPasswordHasher<User>>();
 
+    Log.Information("Applying database migrations and checking seed data...");
     await DatabaseSeeder.SeedAsync(
         dbContext,
         passwordHasher);
+    Log.Information("Database migrations and seeding completed successfully.");
 }
 
 app.UseSerilogRequestLogging(options =>

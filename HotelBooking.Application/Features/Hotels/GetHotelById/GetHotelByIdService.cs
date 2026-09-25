@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Hotels;
 
@@ -32,11 +32,11 @@ public sealed class GetHotelByIdService : IScopedService
                 Location = hotel.Location,
 
                 CityId = hotel.CityId,
-                CityName = hotel.City.Name,
-                Country = hotel.City.Country,
+                CityName = hotel.City?.Name ?? string.Empty,
+                Country = hotel.City?.Country ?? string.Empty,
 
                 OwnerId = hotel.OwnerId,
-                OwnerEmail = hotel.Owner.Email,
+                OwnerEmail = hotel.Owner?.Email ?? string.Empty,
 
                 Images = hotel.Images
                     .Select(image => new HotelImageResponse
@@ -53,8 +53,8 @@ public sealed class GetHotelByIdService : IScopedService
                         RoomNumber = room.RoomNumber,
 
                         RoomTypeId = room.RoomTypeId,
-                        RoomTypeName = room.RoomType.Name,
-                        RoomTypeDescription = room.RoomType.Description,
+                        RoomTypeName = room.RoomType?.Name ?? string.Empty,
+                        RoomTypeDescription = room.RoomType?.Description ?? string.Empty,
 
                         PricePerNight = room.PricePerNight,
                         AdultsCapacity = room.AdultsCapacity,
