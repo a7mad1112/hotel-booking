@@ -1,7 +1,8 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Users;
 using HotelBooking.Application.Features.Users.GetBookingHistory;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
@@ -55,5 +56,36 @@ public sealed class UserRepository : Repository<User>, IUserRepository, IScopedS
             .ToListAsync(cancellationToken);
 
         return history;
+    }
+
+    public async Task<(List<User> Items, int TotalCount)> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? search,
+        UserRole? role,
+        CancellationToken cancellationToken)
+    {
+        var query = DbContext.Users.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var trimmedSearch = search.Trim();
+            query = query.Where(u => EF.Functions.ILike(u.Email, $"%{trimmedSearch}%"));
+        }
+
+        if (role.HasValue)
+        {
+            query = query.Where(u => u.Role == role.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(u => u.Email)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
     }
 }
