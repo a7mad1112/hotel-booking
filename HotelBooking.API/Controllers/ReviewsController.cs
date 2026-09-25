@@ -8,6 +8,7 @@ using HotelBooking.Application.Features.Reviews.UpdateReview;
 using HotelBooking.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -69,8 +70,7 @@ public class ReviewsController : ControllerBase
         CreateReviewRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -118,13 +118,12 @@ public class ReviewsController : ControllerBase
         UpdateReviewRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+        var isAdmin = User.IsAdmin();
 
         var result = await _updateReviewService.UpdateAsync(
             id,
@@ -163,13 +162,12 @@ public class ReviewsController : ControllerBase
         int id,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+        var isAdmin = User.IsAdmin();
 
         var result = await _deleteReviewService.DeleteAsync(
             id,

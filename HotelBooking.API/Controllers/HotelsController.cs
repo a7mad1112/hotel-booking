@@ -13,6 +13,7 @@ using HotelBooking.Application.Common.Images;
 using HotelBooking.Application.Features.Deals.GetFeaturedDeals;
 using HotelBooking.Application.Features.Hotels.DeleteHotelImage;
 using HotelBooking.Application.Features.Hotels.UploadHotelImage;
+using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -138,14 +139,12 @@ public class HotelsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin = User.IsInRole("Admin");
+        var isAdmin = User.IsAdmin();
 
 
         var result = await _deleteHotelService.DeleteAsync(
@@ -191,18 +190,12 @@ public class HotelsController : ControllerBase
         UpdateHotelRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim =
-            User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(
-                userIdClaim,
-                out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin =
-            User.IsInRole("Admin");
+        var isAdmin = User.IsAdmin();
 
         var result =
             await _updateHotelService.UpdateAsync(
@@ -253,12 +246,7 @@ public class HotelsController : ControllerBase
         [FromForm] UploadHotelImageRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim =
-            User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(
-                userIdClaim,
-                out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -279,7 +267,7 @@ public class HotelsController : ControllerBase
                 hotelId,
                 imageUpload,
                 currentUserId,
-                User.IsInRole("Admin"),
+                User.IsAdmin(),
                 cancellationToken);
 
         if (!result.IsSuccess)
@@ -311,9 +299,7 @@ public class HotelsController : ControllerBase
     [HttpDelete("{hotelId:int}/images/{imageId:int}")]
     public async Task<IActionResult> DeleteImage(int hotelId, int imageId, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -322,7 +308,7 @@ public class HotelsController : ControllerBase
             hotelId,
             imageId,
             currentUserId,
-            User.IsInRole("Admin"),
+            User.IsAdmin(),
             cancellationToken);
 
         if (!result.IsSuccess)

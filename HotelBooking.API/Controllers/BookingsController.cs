@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
+using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -167,9 +168,7 @@ public class BookingsController : ControllerBase
     [HttpPost("{id:int}/payment")]
     public async Task<ActionResult<CreatePaymentResponse>> CreatePayment(int id, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -222,9 +221,7 @@ public class BookingsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<CreateBookingResponse>> Create(CreateBookingRequest request, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -263,9 +260,7 @@ public class BookingsController : ControllerBase
     [HttpGet("{id:int}/checkout")]
     public async Task<ActionResult<GetCheckoutResponse>> GetCheckout(int id, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -287,14 +282,12 @@ public class BookingsController : ControllerBase
     [HttpGet("{id:int}/invoice")]
     public async Task<IActionResult> GetInvoice(int id, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+        var isAdmin = User.IsAdmin();
 
         var result = await _getBookingInvoiceService.GetInvoiceAsync(id, currentUserId, isAdmin, cancellationToken);
 

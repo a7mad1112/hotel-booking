@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using HotelBooking.API.Authorization;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Deals.CreateDeal;
@@ -8,6 +8,7 @@ using HotelBooking.Application.Features.Deals.GetDeals;
 using HotelBooking.Application.Features.Deals.UpdateDeal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -66,9 +67,7 @@ public class DealsController : ControllerBase
     public async Task<ActionResult<CreateDealResponse>> Create(CreateDealRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -76,7 +75,7 @@ public class DealsController : ControllerBase
         var result = await _createDealService.CreateAsync(
             request,
             currentUserId,
-            User.IsInRole("Admin"),
+            User.IsAdmin(),
             cancellationToken);
 
         if (!result.IsSuccess)
@@ -110,9 +109,7 @@ public class DealsController : ControllerBase
         UpdateDealRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -121,7 +118,7 @@ public class DealsController : ControllerBase
             id,
             request,
             currentUserId,
-            User.IsInRole("Admin"),
+            User.IsAdmin(),
             cancellationToken);
 
         if (!result.IsSuccess)
@@ -152,9 +149,7 @@ public class DealsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -162,7 +157,7 @@ public class DealsController : ControllerBase
         var result = await _deleteDealService.DeleteAsync(
             id,
             currentUserId,
-            User.IsInRole("Admin"),
+            User.IsAdmin(),
             cancellationToken);
 
         if (!result.IsSuccess)

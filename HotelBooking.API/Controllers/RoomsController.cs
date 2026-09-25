@@ -12,6 +12,7 @@ using HotelBooking.Application.Features.Rooms.UpdateRoom;
 using HotelBooking.Application.Features.Rooms.UploadRoomImage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -64,14 +65,12 @@ public class RoomsController : ControllerBase
     public async Task<ActionResult<UpdateRoomResponse>> Update(int id, UpdateRoomRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin = User.IsInRole("Admin");
+        var isAdmin = User.IsAdmin();
 
         var result = await _updateRoomService.UpdateAsync(id, request, currentUserId, isAdmin, cancellationToken);
 
@@ -111,14 +110,12 @@ public class RoomsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin = User.IsInRole("Admin");
+        var isAdmin = User.IsAdmin();
 
         var result = await _deleteRoomService.DeleteAsync(id, currentUserId, isAdmin, cancellationToken);
 
@@ -169,14 +166,12 @@ public class RoomsController : ControllerBase
     public async Task<ActionResult<CreateRoomResponse>> Create(CreateRoomRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin = User.IsInRole("Admin");
+        var isAdmin = User.IsAdmin();
 
         var result = await _createRoomService.CreateAsync(request, currentUserId, isAdmin, cancellationToken);
 
@@ -212,9 +207,7 @@ public class RoomsController : ControllerBase
         [FromForm] UploadRoomImageRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -232,7 +225,7 @@ public class RoomsController : ControllerBase
             roomId,
             image,
             currentUserId,
-            User.IsInRole("Admin"),
+            User.IsAdmin(),
             cancellationToken);
 
         if (!result.IsSuccess)
@@ -263,9 +256,7 @@ public class RoomsController : ControllerBase
     [HttpDelete("{roomId:int}/images/{imageId:int}")]
     public async Task<IActionResult> DeleteImage(int roomId, int imageId, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -274,7 +265,7 @@ public class RoomsController : ControllerBase
             roomId,
             imageId,
             currentUserId,
-            User.IsInRole("Admin"),
+            User.IsAdmin(),
             cancellationToken);
 
         if (!result.IsSuccess)
