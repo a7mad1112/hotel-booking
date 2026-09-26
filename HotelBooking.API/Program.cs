@@ -62,6 +62,9 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddValidation();
 
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 builder.Services
     .AddControllers(options => { options.Filters.Add<FluentValidationFilter>(); })
     .ConfigureApiBehaviorOptions(options =>
@@ -140,7 +143,7 @@ app.UseSerilogRequestLogging(options =>
     };
 });
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
