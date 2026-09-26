@@ -1,9 +1,8 @@
-﻿namespace HotelBooking.Application.Common.Payments;
+namespace HotelBooking.Application.Common.Payments;
 
-public interface IPaymentProvider
+public interface IPaymentProvider : IPaymentGateway
 {
     string Name { get; }
 
-    Task<PaymentCheckoutResult> CreateCheckoutSessionAsync(PaymentCheckoutRequest request,
-        CancellationToken cancellationToken);
+    string IPaymentGateway.ProviderName => Name;
 }
