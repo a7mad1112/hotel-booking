@@ -3,6 +3,7 @@ using HotelBooking.Application.Features.Users;
 using HotelBooking.Application.Features.Users.GetBookingHistory;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
+using HotelBooking.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
@@ -78,14 +79,8 @@ public sealed class UserRepository : Repository<User>, IUserRepository, IScopedS
             query = query.Where(u => u.Role == role.Value);
         }
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query
+        return await query
             .OrderBy(u => u.Email)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return (items, totalCount);
+            .ToPagedListAsync(page, pageSize, cancellationToken);
     }
 }

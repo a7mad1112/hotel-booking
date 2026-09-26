@@ -2,6 +2,7 @@ using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Reviews;
 using HotelBooking.Domain.Entities;
 using HotelBooking.Domain.Enums;
+using HotelBooking.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
@@ -30,15 +31,9 @@ public sealed class ReviewRepository : Repository<Review>, IReviewRepository, IS
             .Include(r => r.User)
             .Where(r => r.HotelId == hotelId);
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query
+        return await query
             .OrderByDescending(r => r.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return (items, totalCount);
+            .ToPagedListAsync(page, pageSize, cancellationToken);
     }
 
     public async Task<bool> HasUserBookedHotelAsync(

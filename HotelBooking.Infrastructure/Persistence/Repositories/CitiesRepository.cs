@@ -1,6 +1,7 @@
 using HotelBooking.Application.Features.Cities;
 using HotelBooking.Application.Features.Cities.GetTrendingCities;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
@@ -28,17 +29,11 @@ public sealed class CitiesRepository : Repository<City>, ICitiesRepository
                                      EF.Functions.ILike(x.Country, $"%{trimmed}%"));
         }
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query
+        return await query
             .OrderBy(x => x.Name)
             .ThenBy(x => x.Country)
             .ThenBy(x => x.Id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return (items, totalCount);
+            .ToPagedListAsync(page, pageSize, cancellationToken);
     }
 
 

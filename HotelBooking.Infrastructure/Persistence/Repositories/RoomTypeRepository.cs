@@ -1,6 +1,7 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.RoomTypes;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
@@ -19,16 +20,10 @@ public sealed class RoomTypeRepository : Repository<RoomType>, IRoomTypeReposito
         var query = DbContext.RoomTypes
             .AsNoTracking();
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query
+        return await query
             .OrderBy(x => x.Name)
             .ThenBy(x => x.Id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return (items, totalCount);
+            .ToPagedListAsync(page, pageSize, cancellationToken);
     }
 
     public async Task<bool> HasRoomsAsync(int roomTypeId, CancellationToken cancellationToken)
