@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Rooms;
 
@@ -24,19 +24,19 @@ public sealed class UpdateRoomService : IScopedService
 
         if (room is null)
         {
-            return ResultOfT<UpdateRoomResponse>.Failure("Room not found.");
+            return ResultOfT<UpdateRoomResponse>.NotFound("Room not found.");
         }
 
         if (!isAdmin && room.Hotel.OwnerId != currentUserId)
         {
-            return ResultOfT<UpdateRoomResponse>.Failure("You are not allowed to update this room.");
+            return ResultOfT<UpdateRoomResponse>.Forbidden("You are not allowed to update this room.");
         }
 
         var roomTypeExists = await _repository.RoomTypeExistsAsync(request.RoomTypeId, cancellationToken);
 
         if (!roomTypeExists)
         {
-            return ResultOfT<UpdateRoomResponse>.Failure("Room type not found.");
+            return ResultOfT<UpdateRoomResponse>.Validation("Room type not found.");
         }
 
         room.RoomTypeId = request.RoomTypeId;

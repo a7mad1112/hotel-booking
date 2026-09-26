@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using HotelBooking.API.Authorization;
+using HotelBooking.API.Extensions;
 using HotelBooking.API.Features.Rooms.UploadRoomImage;
 using HotelBooking.Application.Common.Images;
 using HotelBooking.Application.Common.Pagination;
@@ -12,7 +13,6 @@ using HotelBooking.Application.Features.Rooms.UpdateRoom;
 using HotelBooking.Application.Features.Rooms.UploadRoomImage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -25,13 +25,16 @@ public class RoomsController : ControllerBase
     private readonly DeleteRoomService _deleteRoomService;
     private readonly UpdateRoomService _updateRoomService;
     private readonly GetRoomByIdService _getRoomByIdService;
-
     private readonly UploadRoomImageService _uploadRoomImageService;
     private readonly DeleteRoomImageService _deleteRoomImageService;
 
-    public RoomsController(CreateRoomService createRoomService, GetRoomsService getRoomsService,
-        DeleteRoomService deleteRoomService, UpdateRoomService updateRoomService,
-        GetRoomByIdService getRoomByIdService, UploadRoomImageService uploadRoomImageService,
+    public RoomsController(
+        CreateRoomService createRoomService,
+        GetRoomsService getRoomsService,
+        DeleteRoomService deleteRoomService,
+        UpdateRoomService updateRoomService,
+        GetRoomByIdService getRoomByIdService,
+        UploadRoomImageService uploadRoomImageService,
         DeleteRoomImageService deleteRoomImageService)
     {
         _createRoomService = createRoomService;
@@ -39,7 +42,6 @@ public class RoomsController : ControllerBase
         _deleteRoomService = deleteRoomService;
         _updateRoomService = updateRoomService;
         _getRoomByIdService = getRoomByIdService;
-
         _uploadRoomImageService = uploadRoomImageService;
         _deleteRoomImageService = deleteRoomImageService;
     }
@@ -51,10 +53,7 @@ public class RoomsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -62,7 +61,9 @@ public class RoomsController : ControllerBase
 
     [Authorize]
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<UpdateRoomResponse>> Update(int id, UpdateRoomRequest request,
+    public async Task<ActionResult<UpdateRoomResponse>> Update(
+        int id,
+        UpdateRoomRequest request,
         CancellationToken cancellationToken)
     {
         if (!User.TryGetUserId(out var currentUserId))
@@ -76,31 +77,7 @@ public class RoomsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Room not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to update this room.")
-            {
-                return Forbid();
-            }
-
-            if (result.Error == "Room type not found.")
-            {
-                return BadRequest(new
-                {
-                    message = result.Error
-                });
-            }
-
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -121,31 +98,7 @@ public class RoomsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Room not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to delete this room.")
-            {
-                return Forbid();
-            }
-
-            if (result.Error == "Cannot delete a room that has related bookings.")
-            {
-                return Conflict(new
-                {
-                    message = result.Error
-                });
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return NoContent();
@@ -163,7 +116,8 @@ public class RoomsController : ControllerBase
 
     [Authorize(Policy = AuthorizationPolicies.ManageRooms)]
     [HttpPost]
-    public async Task<ActionResult<CreateRoomResponse>> Create(CreateRoomRequest request,
+    public async Task<ActionResult<CreateRoomResponse>> Create(
+        CreateRoomRequest request,
         CancellationToken cancellationToken)
     {
         if (!User.TryGetUserId(out var currentUserId))
@@ -177,23 +131,7 @@ public class RoomsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Hotel not found." || result.Error == "Room type not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to create rooms for this hotel.")
-            {
-                return Forbid();
-            }
-
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return StatusCode(StatusCodes.Status201Created, result.Value);
@@ -230,23 +168,7 @@ public class RoomsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Room not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to upload images for this room.")
-            {
-                return Forbid();
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -270,23 +192,7 @@ public class RoomsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Room not found." || result.Error == "Room image not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to delete images for this room.")
-            {
-                return Forbid();
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return NoContent();

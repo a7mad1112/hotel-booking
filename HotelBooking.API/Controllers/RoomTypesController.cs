@@ -1,4 +1,5 @@
-﻿using HotelBooking.API.Authorization;
+using HotelBooking.API.Authorization;
+using HotelBooking.API.Extensions;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Rooms.GetRooms;
 using HotelBooking.Application.Features.RoomTypes.CreateRoomType;
@@ -51,10 +52,7 @@ public class RoomTypesController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -62,17 +60,15 @@ public class RoomTypesController : ControllerBase
 
     [Authorize(Policy = AuthorizationPolicies.ManageRoomTypes)]
     [HttpPost]
-    public async Task<ActionResult<CreateRoomTypeResponse>> Create(CreateRoomTypeRequest request,
+    public async Task<ActionResult<CreateRoomTypeResponse>> Create(
+        CreateRoomTypeRequest request,
         CancellationToken cancellationToken)
     {
         var result = await _createRoomTypeService.CreateAsync(request, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return CreatedAtAction(
@@ -86,17 +82,16 @@ public class RoomTypesController : ControllerBase
 
     [Authorize(Policy = AuthorizationPolicies.ManageRoomTypes)]
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<UpdateRoomTypeResponse>> Update(int id, UpdateRoomTypeRequest request,
+    public async Task<ActionResult<UpdateRoomTypeResponse>> Update(
+        int id,
+        UpdateRoomTypeRequest request,
         CancellationToken cancellationToken)
     {
         var result = await _updateRoomTypeService.UpdateAsync(id, request, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -110,26 +105,7 @@ public class RoomTypesController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Room type not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "Cannot delete a room type that is used by rooms.")
-            {
-                return Conflict(new
-                {
-                    message = result.Error
-                });
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return NoContent();

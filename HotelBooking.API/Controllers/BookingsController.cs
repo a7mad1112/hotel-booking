@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using HotelBooking.API.Authorization;
+using HotelBooking.API.Extensions;
+using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Bookings.Checkout;
 using HotelBooking.Application.Features.Bookings.CreateBooking;
 using HotelBooking.Application.Features.Payments.ConfirmPayment;
@@ -13,7 +15,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
-using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -109,7 +110,7 @@ public class BookingsController : ControllerBase
 
                     var result = await _confirmPaymentService.ConfirmAsync(session.Id, session.PaymentIntentId, amount, cancellationToken);
 
-                    if (!result.IsSuccess && result.Error == "Payment not found.")
+                    if (!result.IsSuccess && result.ErrorType == ErrorType.NotFound)
                     {
                         _logger.LogWarning("Stripe payment confirmation failed because payment was not found.");
 
@@ -141,7 +142,7 @@ public class BookingsController : ControllerBase
 
                     var result = await _failPaymentService.FailAsync(session.Id, cancellationToken);
 
-                    if (!result.IsSuccess && result.Error == "Payment not found.")
+                    if (!result.IsSuccess && result.ErrorType == ErrorType.NotFound)
                     {
                         _logger.LogWarning("Stripe payment failure processing failed because payment was not found.");
 
@@ -191,27 +192,7 @@ public class BookingsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Booking not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "Booking is not available for payment." ||
-                result.Error == "A payment already exists for this booking.")
-            {
-                return Conflict(new
-                {
-                    message = result.Error
-                });
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -230,27 +211,7 @@ public class BookingsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Room not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "Room is not available." ||
-                result.Error == "Room is not available for the selected dates.")
-            {
-                return Conflict(new
-                {
-                    message = result.Error
-                });
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return StatusCode(StatusCodes.Status201Created, result.Value);
@@ -269,10 +230,7 @@ public class BookingsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -293,23 +251,7 @@ public class BookingsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Booking not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to access this invoice.")
-            {
-                return Forbid();
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return File(result.Value!.Content, result.Value.ContentType, result.Value.FileName);

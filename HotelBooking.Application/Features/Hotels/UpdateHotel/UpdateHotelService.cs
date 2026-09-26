@@ -41,13 +41,13 @@ public sealed class UpdateHotelService : IScopedService
 
         if (hotel is null)
         {
-            return ResultOfT<UpdateHotelResponse>.Failure(
+            return ResultOfT<UpdateHotelResponse>.NotFound(
                 "Hotel not found.");
         }
 
         if (!isAdmin && hotel.OwnerId != currentUserId)
         {
-            return ResultOfT<UpdateHotelResponse>.Failure(
+            return ResultOfT<UpdateHotelResponse>.Forbidden(
                 "You are not allowed to update this hotel.");
         }
 
@@ -58,7 +58,7 @@ public sealed class UpdateHotelService : IScopedService
 
         if (!cityExists)
         {
-            return ResultOfT<UpdateHotelResponse>.Failure(
+            return ResultOfT<UpdateHotelResponse>.Validation(
                 "City not found.");
         }
 

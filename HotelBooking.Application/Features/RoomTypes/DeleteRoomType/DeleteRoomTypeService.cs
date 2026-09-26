@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.RoomTypes;
 
@@ -19,14 +19,14 @@ public sealed class DeleteRoomTypeService : IScopedService
 
         if (roomType is null)
         {
-            return Result.Failure("Room type not found.");
+            return Result.NotFound("Room type not found.");
         }
 
         var hasRooms = await _repository.HasRoomsAsync(id, cancellationToken);
 
         if (hasRooms)
         {
-            return Result.Failure("Cannot delete a room type that is used by rooms.");
+            return Result.Conflict("Cannot delete a room type that is used by rooms.");
         }
 
         _repository.Delete(roomType);

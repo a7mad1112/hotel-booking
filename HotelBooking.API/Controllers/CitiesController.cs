@@ -1,4 +1,5 @@
 using HotelBooking.API.Authorization;
+using HotelBooking.API.Extensions;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Cities.CreateCity;
 using HotelBooking.Application.Features.Cities.DeleteCity;
@@ -44,20 +45,12 @@ public class CitiesController : ControllerBase
         CreateCityRequest request,
         CancellationToken cancellationToken)
     {
-        var result =
-            await _createCityService.CreateAsync(
-                request,
-                cancellationToken);
-
+        var result = await _createCityService.CreateAsync(request, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
-
 
         return CreatedAtAction(
             nameof(GetById),
@@ -68,22 +61,15 @@ public class CitiesController : ControllerBase
             result.Value);
     }
 
-
     [HttpGet]
     public async Task<ActionResult<PagedResult<GetCitiesResponse>>> GetAll(
         [FromQuery] PaginationRequest request,
         [FromQuery] string? search,
         CancellationToken cancellationToken)
     {
-        var cities =
-            await _getCitiesService.GetAllAsync(
-                request,
-                search,
-                cancellationToken);
-
+        var cities = await _getCitiesService.GetAllAsync(request, search, cancellationToken);
         return Ok(cities);
     }
-
 
     [Authorize(Policy = AuthorizationPolicies.ManageCities)]
     [HttpDelete("{id:int}")]
@@ -91,29 +77,12 @@ public class CitiesController : ControllerBase
         int id,
         CancellationToken cancellationToken)
     {
-        var result =
-            await _deleteCityService.DeleteAsync(
-                id,
-                cancellationToken);
-
+        var result = await _deleteCityService.DeleteAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "City not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
-
 
         return NoContent();
     }
@@ -125,30 +94,12 @@ public class CitiesController : ControllerBase
         UpdateCityRequest request,
         CancellationToken cancellationToken)
     {
-        var result =
-            await _updateCityService.UpdateAsync(
-                id,
-                request,
-                cancellationToken);
-
+        var result = await _updateCityService.UpdateAsync(id, request, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "City not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
-
 
         return Ok(result.Value);
     }
@@ -157,7 +108,6 @@ public class CitiesController : ControllerBase
     public async Task<ActionResult<List<GetTrendingCitiesResponse>>> GetTrending(CancellationToken cancellationToken)
     {
         var cities = await _getTrendingCitiesService.GetAsync(cancellationToken);
-
         return Ok(cities);
     }
 
@@ -166,20 +116,12 @@ public class CitiesController : ControllerBase
         int id,
         CancellationToken cancellationToken)
     {
-        var result =
-            await _getCityByIdService.GetAsync(
-                id,
-                cancellationToken);
-
+        var result = await _getCityByIdService.GetAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
-
 
         return Ok(result.Value);
     }

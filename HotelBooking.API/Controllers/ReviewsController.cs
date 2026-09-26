@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using HotelBooking.API.Extensions;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Reviews.CreateReview;
 using HotelBooking.Application.Features.Reviews.DeleteReview;
@@ -8,7 +9,6 @@ using HotelBooking.Application.Features.Reviews.UpdateReview;
 using HotelBooking.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -54,10 +54,7 @@ public class ReviewsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -83,26 +80,7 @@ public class ReviewsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Hotel not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "Only guests who have booked this hotel can submit a review.")
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, new
-                {
-                    message = result.Error
-                });
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return CreatedAtAction(
@@ -134,23 +112,7 @@ public class ReviewsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Review not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to update this review.")
-            {
-                return Forbid();
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -177,23 +139,7 @@ public class ReviewsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Review not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to delete this review.")
-            {
-                return Forbid();
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return NoContent();

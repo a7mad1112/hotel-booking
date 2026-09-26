@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using HotelBooking.API.Authorization;
+using HotelBooking.API.Extensions;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Deals.CreateDeal;
 using HotelBooking.Application.Features.Deals.DeleteDeal;
@@ -8,7 +9,6 @@ using HotelBooking.Application.Features.Deals.GetDeals;
 using HotelBooking.Application.Features.Deals.UpdateDeal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -53,10 +53,7 @@ public class DealsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -80,23 +77,7 @@ public class DealsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Hotel not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to manage deals for this hotel.")
-            {
-                return Forbid();
-            }
-
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return StatusCode(StatusCodes.Status201Created, result.Value);
@@ -123,23 +104,7 @@ public class DealsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Deal not found." || result.Error == "Hotel not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to manage deals for this hotel.")
-            {
-                return Forbid();
-            }
-
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -162,23 +127,7 @@ public class DealsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Deal not found." || result.Error == "Hotel not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to manage deals for this hotel.")
-            {
-                return Forbid();
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return NoContent();
