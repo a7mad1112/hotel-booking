@@ -1,16 +1,11 @@
-using System.Security.Claims;
 using HotelBooking.API.Authorization;
 using HotelBooking.API.Extensions;
-using HotelBooking.API.Features.Rooms.UploadRoomImage;
-using HotelBooking.Application.Common.Images;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Rooms.CreateRoom;
 using HotelBooking.Application.Features.Rooms.DeleteRoom;
-using HotelBooking.Application.Features.Rooms.DeleteRoomImage;
 using HotelBooking.Application.Features.Rooms.GetRoomById;
 using HotelBooking.Application.Features.Rooms.GetRooms;
 using HotelBooking.Application.Features.Rooms.UpdateRoom;
-using HotelBooking.Application.Features.Rooms.UploadRoomImage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,25 +20,19 @@ public class RoomsController : ControllerBase
     private readonly DeleteRoomService _deleteRoomService;
     private readonly UpdateRoomService _updateRoomService;
     private readonly GetRoomByIdService _getRoomByIdService;
-    private readonly UploadRoomImageService _uploadRoomImageService;
-    private readonly DeleteRoomImageService _deleteRoomImageService;
 
     public RoomsController(
         CreateRoomService createRoomService,
         GetRoomsService getRoomsService,
         DeleteRoomService deleteRoomService,
         UpdateRoomService updateRoomService,
-        GetRoomByIdService getRoomByIdService,
-        UploadRoomImageService uploadRoomImageService,
-        DeleteRoomImageService deleteRoomImageService)
+        GetRoomByIdService getRoomByIdService)
     {
         _createRoomService = createRoomService;
         _getRoomsService = getRoomsService;
         _deleteRoomService = deleteRoomService;
         _updateRoomService = updateRoomService;
         _getRoomByIdService = getRoomByIdService;
-        _uploadRoomImageService = uploadRoomImageService;
-        _deleteRoomImageService = deleteRoomImageService;
     }
 
     [HttpGet("{id:int}")]
@@ -135,66 +124,5 @@ public class RoomsController : ControllerBase
         }
 
         return StatusCode(StatusCodes.Status201Created, result.Value);
-    }
-
-    [Authorize]
-    [HttpPost("{roomId:int}/images")]
-    [Consumes("multipart/form-data")]
-    public async Task<ActionResult<UploadRoomImageResponse>> UploadImage(
-        int roomId,
-        [FromForm] UploadRoomImageRequest request,
-        CancellationToken cancellationToken)
-    {
-        if (!User.TryGetUserId(out var currentUserId))
-        {
-            return Unauthorized();
-        }
-
-        await using var stream = request.Image.OpenReadStream();
-
-        var image = new ImageUpload()
-        {
-            Content = stream,
-            FileName = request.Image.FileName,
-            ContentType = request.Image.ContentType
-        };
-
-        var result = await _uploadRoomImageService.UploadAsync(
-            roomId,
-            image,
-            currentUserId,
-            User.IsAdmin(),
-            cancellationToken);
-
-        if (!result.IsSuccess)
-        {
-            return result.ToErrorResult();
-        }
-
-        return Ok(result.Value);
-    }
-
-    [Authorize]
-    [HttpDelete("{roomId:int}/images/{imageId:int}")]
-    public async Task<IActionResult> DeleteImage(int roomId, int imageId, CancellationToken cancellationToken)
-    {
-        if (!User.TryGetUserId(out var currentUserId))
-        {
-            return Unauthorized();
-        }
-
-        var result = await _deleteRoomImageService.DeleteAsync(
-            roomId,
-            imageId,
-            currentUserId,
-            User.IsAdmin(),
-            cancellationToken);
-
-        if (!result.IsSuccess)
-        {
-            return result.ToErrorResult();
-        }
-
-        return NoContent();
     }
 }

@@ -1,17 +1,12 @@
-using System.Security.Claims;
 using HotelBooking.API.Authorization;
 using HotelBooking.API.Extensions;
-using HotelBooking.API.Features.Hotels.UploadHotelImage;
-using HotelBooking.Application.Common.Images;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Deals.GetFeaturedDeals;
 using HotelBooking.Application.Features.Hotels.CreateHotel;
 using HotelBooking.Application.Features.Hotels.DeleteHotel;
-using HotelBooking.Application.Features.Hotels.DeleteHotelImage;
 using HotelBooking.Application.Features.Hotels.GetHotelById;
 using HotelBooking.Application.Features.Hotels.GetHotels;
 using HotelBooking.Application.Features.Hotels.UpdateHotel;
-using HotelBooking.Application.Features.Hotels.UploadHotelImage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,8 +21,6 @@ public class HotelsController : ControllerBase
     private readonly GetHotelByIdService _getHotelByIdService;
     private readonly DeleteHotelService _deleteHotelService;
     private readonly UpdateHotelService _updateHotelService;
-    private readonly UploadHotelImageService _uploadHotelImageService;
-    private readonly DeleteHotelImageService _deleteHotelImageService;
     private readonly GetFeaturedDealsService _getFeaturedDealsService;
 
     public HotelsController(
@@ -36,8 +29,6 @@ public class HotelsController : ControllerBase
         GetHotelByIdService getHotelByIdService,
         DeleteHotelService deleteHotelService,
         UpdateHotelService updateHotelService,
-        UploadHotelImageService uploadHotelImageService,
-        DeleteHotelImageService deleteHotelImageService,
         GetFeaturedDealsService getFeaturedDealsService)
     {
         _createHotelService = createHotelService;
@@ -45,8 +36,6 @@ public class HotelsController : ControllerBase
         _getHotelByIdService = getHotelByIdService;
         _deleteHotelService = deleteHotelService;
         _updateHotelService = updateHotelService;
-        _uploadHotelImageService = uploadHotelImageService;
-        _deleteHotelImageService = deleteHotelImageService;
         _getFeaturedDealsService = getFeaturedDealsService;
     }
 
@@ -151,67 +140,5 @@ public class HotelsController : ControllerBase
         }
 
         return Ok(result.Value);
-    }
-
-    [Authorize]
-    [HttpPost("{hotelId:int}/images")]
-    [Consumes("multipart/form-data")]
-    public async Task<ActionResult<UploadHotelImageResponse>> UploadImage(
-        int hotelId,
-        [FromForm] UploadHotelImageRequest request,
-        CancellationToken cancellationToken)
-    {
-        if (!User.TryGetUserId(out var currentUserId))
-        {
-            return Unauthorized();
-        }
-
-        var image = request.Image!;
-        await using var stream = image.OpenReadStream();
-
-        var imageUpload = new ImageUpload
-        {
-            Content = stream,
-            FileName = image.FileName,
-            ContentType = image.ContentType
-        };
-
-        var result = await _uploadHotelImageService.UploadAsync(
-            hotelId,
-            imageUpload,
-            currentUserId,
-            User.IsAdmin(),
-            cancellationToken);
-
-        if (!result.IsSuccess)
-        {
-            return result.ToErrorResult();
-        }
-
-        return Ok(result.Value);
-    }
-
-    [Authorize]
-    [HttpDelete("{hotelId:int}/images/{imageId:int}")]
-    public async Task<IActionResult> DeleteImage(int hotelId, int imageId, CancellationToken cancellationToken)
-    {
-        if (!User.TryGetUserId(out var currentUserId))
-        {
-            return Unauthorized();
-        }
-
-        var result = await _deleteHotelImageService.DeleteAsync(
-            hotelId,
-            imageId,
-            currentUserId,
-            User.IsAdmin(),
-            cancellationToken);
-
-        if (!result.IsSuccess)
-        {
-            return result.ToErrorResult();
-        }
-
-        return NoContent();
     }
 }
