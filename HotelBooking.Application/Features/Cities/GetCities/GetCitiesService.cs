@@ -24,24 +24,19 @@ public sealed class GetCitiesService : IScopedService
             search,
             cancellationToken);
 
-        return new PagedResult<GetCitiesResponse>
-        {
-            Items = result.Items
-                .Select(city => new GetCitiesResponse
-                {
-                    Id = city.Id,
-                    Name = city.Name,
-                    Country = city.Country,
-                    PostalCode = city.PostalCode,
-                    NumberOfHotels = city.Hotels?.Count ?? 0,
-                    CreatedAt = city.CreatedAt,
-                    UpdatedAt = city.UpdatedAt
-                })
-                .ToList(),
+        var items = result.Items
+            .Select(city => new GetCitiesResponse
+            {
+                Id = city.Id,
+                Name = city.Name,
+                Country = city.Country,
+                PostalCode = city.PostalCode,
+                NumberOfHotels = city.Hotels?.Count ?? 0,
+                CreatedAt = city.CreatedAt,
+                UpdatedAt = city.UpdatedAt
+            })
+            .ToList();
 
-            Page = request.Page,
-            PageSize = request.PageSize,
-            TotalCount = result.TotalCount
-        };
+        return PagedResult<GetCitiesResponse>.Create(items, result.TotalCount, request);
     }
 }

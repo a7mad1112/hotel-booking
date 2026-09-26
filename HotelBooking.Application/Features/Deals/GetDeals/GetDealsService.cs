@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Pagination;
 
 namespace HotelBooking.Application.Features.Deals.GetDeals;
@@ -17,22 +17,17 @@ public sealed class GetDealsService : IScopedService
     {
         var result = await _repository.GetPagedAsync(request.Page, request.PageSize, cancellationToken);
 
-        return new PagedResult<GetDealsResponse>
-        {
-            Items = result.Items.Select(deal => new GetDealsResponse
-                {
-                    Id = deal.Id,
-                    HotelId = deal.HotelId,
-                    HotelName = deal.Hotel.Name,
-                    DiscountPercentage = deal.DiscountPercentage,
-                    StartDate = deal.StartDate,
-                    EndDate = deal.EndDate
-                })
-                .ToList(),
+        var items = result.Items.Select(deal => new GetDealsResponse
+            {
+                Id = deal.Id,
+                HotelId = deal.HotelId,
+                HotelName = deal.Hotel.Name,
+                DiscountPercentage = deal.DiscountPercentage,
+                StartDate = deal.StartDate,
+                EndDate = deal.EndDate
+            })
+            .ToList();
 
-            Page = request.Page,
-            PageSize = request.PageSize,
-            TotalCount = result.TotalCount
-        };
+        return PagedResult<GetDealsResponse>.Create(items, result.TotalCount, request);
     }
 }

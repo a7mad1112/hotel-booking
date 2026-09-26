@@ -21,20 +21,15 @@ public sealed class GetAmenitiesService : IScopedService
             request.PageSize,
             cancellationToken);
 
-        return new PagedResult<GetAmenitiesResponse>
-        {
-            Items = result.Items
-                .Select(amenity => new GetAmenitiesResponse
-                {
-                    Id = amenity.Id,
-                    Name = amenity.Name,
-                    Description = amenity.Description
-                })
-                .ToList(),
+        var items = result.Items
+            .Select(amenity => new GetAmenitiesResponse
+            {
+                Id = amenity.Id,
+                Name = amenity.Name,
+                Description = amenity.Description
+            })
+            .ToList();
 
-            Page = request.Page,
-            PageSize = request.PageSize,
-            TotalCount = result.TotalCount
-        };
+        return PagedResult<GetAmenitiesResponse>.Create(items, result.TotalCount, request);
     }
 }

@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.RoomTypes;
 
@@ -21,22 +21,15 @@ public sealed class GetRoomTypesService : IScopedService
             request.PageSize,
             cancellationToken);
 
-        return new PagedResult<GetRoomTypesResponse>
-        {
-            Items = result.Items
-                .Select(roomType => new GetRoomTypesResponse
-                {
-                    Id = roomType.Id,
-                    Name = roomType.Name,
-                    Description = roomType.Description
-                })
-                .ToList(),
+        var items = result.Items
+            .Select(roomType => new GetRoomTypesResponse
+            {
+                Id = roomType.Id,
+                Name = roomType.Name,
+                Description = roomType.Description
+            })
+            .ToList();
 
-            Page = request.Page,
-
-            PageSize = request.PageSize,
-
-            TotalCount = result.TotalCount
-        };
+        return PagedResult<GetRoomTypesResponse>.Create(items, result.TotalCount, request);
     }
 }

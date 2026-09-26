@@ -24,29 +24,24 @@ public sealed class GetHotelsService : IScopedService
             search,
             cancellationToken);
 
-        return new PagedResult<GetHotelsResponse>
-        {
-            Items = result.Items
-                .Select(hotel => new GetHotelsResponse
-                {
-                    Id = hotel.Id,
-                    Name = hotel.Name,
-                    Description = hotel.Description,
-                    StarRating = hotel.StarRating,
-                    Location = hotel.Location,
-                    CityId = hotel.CityId,
-                    CityName = hotel.City.Name,
-                    OwnerId = hotel.OwnerId,
-                    OwnerEmail = hotel.Owner.Email,
-                    NumberOfRooms = hotel.Rooms?.Count ?? 0,
-                    CreatedAt = hotel.CreatedAt,
-                    UpdatedAt = hotel.UpdatedAt
-                })
-                .ToList(),
+        var items = result.Items
+            .Select(hotel => new GetHotelsResponse
+            {
+                Id = hotel.Id,
+                Name = hotel.Name,
+                Description = hotel.Description,
+                StarRating = hotel.StarRating,
+                Location = hotel.Location,
+                CityId = hotel.CityId,
+                CityName = hotel.City.Name,
+                OwnerId = hotel.OwnerId,
+                OwnerEmail = hotel.Owner.Email,
+                NumberOfRooms = hotel.Rooms?.Count ?? 0,
+                CreatedAt = hotel.CreatedAt,
+                UpdatedAt = hotel.UpdatedAt
+            })
+            .ToList();
 
-            Page = request.Page,
-            PageSize = request.PageSize,
-            TotalCount = result.TotalCount
-        };
+        return PagedResult<GetHotelsResponse>.Create(items, result.TotalCount, request);
     }
 }

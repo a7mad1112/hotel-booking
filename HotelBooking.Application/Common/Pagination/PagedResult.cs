@@ -1,4 +1,4 @@
-﻿namespace HotelBooking.Application.Common.Pagination;
+namespace HotelBooking.Application.Common.Pagination;
 
 public sealed class PagedResult<T>
 {
@@ -13,4 +13,28 @@ public sealed class PagedResult<T>
     public int TotalPages =>
         (int)Math.Ceiling(
             TotalCount / (double)PageSize);
+
+    public static PagedResult<T> Create(
+        IReadOnlyList<T> items,
+        int totalCount,
+        int page,
+        int pageSize)
+    {
+        return new PagedResult<T>
+        {
+            Items = items ?? [],
+            TotalCount = totalCount,
+            Page = page < 1 ? 1 : page,
+            PageSize = pageSize < 1 ? 10 : pageSize
+        };
+    }
+
+    public static PagedResult<T> Create(
+        IReadOnlyList<T> items,
+        int totalCount,
+        PaginationRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return Create(items, totalCount, request.Page, request.PageSize);
+    }
 }
