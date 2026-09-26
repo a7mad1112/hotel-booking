@@ -1,5 +1,6 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using HotelBooking.API.Authorization;
+using HotelBooking.API.Extensions;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Deals.CreateDeal;
 using HotelBooking.Application.Features.Deals.DeleteDeal;
@@ -52,10 +53,7 @@ public class DealsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -66,9 +64,7 @@ public class DealsController : ControllerBase
     public async Task<ActionResult<CreateDealResponse>> Create(CreateDealRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -76,28 +72,12 @@ public class DealsController : ControllerBase
         var result = await _createDealService.CreateAsync(
             request,
             currentUserId,
-            User.IsInRole("Admin"),
+            User.IsAdmin(),
             cancellationToken);
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Hotel not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to manage deals for this hotel.")
-            {
-                return Forbid();
-            }
-
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return StatusCode(StatusCodes.Status201Created, result.Value);
@@ -110,9 +90,7 @@ public class DealsController : ControllerBase
         UpdateDealRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -121,28 +99,12 @@ public class DealsController : ControllerBase
             id,
             request,
             currentUserId,
-            User.IsInRole("Admin"),
+            User.IsAdmin(),
             cancellationToken);
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Deal not found." || result.Error == "Hotel not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to manage deals for this hotel.")
-            {
-                return Forbid();
-            }
-
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -152,9 +114,7 @@ public class DealsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -162,28 +122,12 @@ public class DealsController : ControllerBase
         var result = await _deleteDealService.DeleteAsync(
             id,
             currentUserId,
-            User.IsInRole("Admin"),
+            User.IsAdmin(),
             cancellationToken);
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Deal not found." || result.Error == "Hotel not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to manage deals for this hotel.")
-            {
-                return Forbid();
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return NoContent();

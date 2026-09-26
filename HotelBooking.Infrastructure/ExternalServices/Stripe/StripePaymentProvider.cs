@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Payments;
 using Microsoft.Extensions.Options;
 using Stripe;
@@ -16,6 +16,7 @@ public sealed class StripePaymentProvider : IPaymentProvider, IScopedService
     }
 
     public string Name => "Stripe";
+    public string ProviderName => Name;
 
     public async Task<PaymentCheckoutResult> CreateCheckoutSessionAsync(
         PaymentCheckoutRequest request,

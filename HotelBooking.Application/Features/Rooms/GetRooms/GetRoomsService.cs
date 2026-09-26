@@ -24,28 +24,23 @@ public sealed class GetRoomsService : IScopedService
             search,
             cancellationToken);
 
-        return new PagedResult<GetRoomsResponse>
-        {
-            Items = result.Items.Select(room => new GetRoomsResponse
-                {
-                    Id = room.Id,
-                    HotelId = room.HotelId,
-                    HotelName = room.Hotel.Name,
-                    RoomNumber = room.RoomNumber,
-                    RoomTypeId = room.RoomTypeId,
-                    RoomTypeName = room.RoomType.Name,
-                    PricePerNight = room.PricePerNight,
-                    AdultsCapacity = room.AdultsCapacity,
-                    ChildrenCapacity = room.ChildrenCapacity,
-                    Availability = room.Availability,
-                    CreatedAt = room.CreatedAt,
-                    UpdatedAt = room.UpdatedAt
-                })
-                .ToList(),
+        var items = result.Items.Select(room => new GetRoomsResponse
+            {
+                Id = room.Id,
+                HotelId = room.HotelId,
+                HotelName = room.Hotel.Name,
+                RoomNumber = room.RoomNumber,
+                RoomTypeId = room.RoomTypeId,
+                RoomTypeName = room.RoomType.Name,
+                PricePerNight = room.PricePerNight,
+                AdultsCapacity = room.AdultsCapacity,
+                ChildrenCapacity = room.ChildrenCapacity,
+                Availability = room.Availability,
+                CreatedAt = room.CreatedAt,
+                UpdatedAt = room.UpdatedAt
+            })
+            .ToList();
 
-            Page = request.Page,
-            PageSize = request.PageSize,
-            TotalCount = result.TotalCount
-        };
+        return PagedResult<GetRoomsResponse>.Create(items, result.TotalCount, request);
     }
 }

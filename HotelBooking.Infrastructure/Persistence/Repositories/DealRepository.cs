@@ -1,6 +1,7 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Deals;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
@@ -18,15 +19,9 @@ public sealed class DealRepository : Repository<Deal>, IDealRepository, IScopedS
             .AsNoTracking()
             .Include(x => x.Hotel);
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query.OrderBy(x => x.StartDate).ThenBy(x => x.Hotel.Name)
+        return await query.OrderBy(x => x.StartDate).ThenBy(x => x.Hotel.Name)
             .ThenBy(x => x.Id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return (items, totalCount);
+            .ToPagedListAsync(page, pageSize, cancellationToken);
     }
 
     public async Task<Deal?> GetDetailsByIdAsync(int id, CancellationToken cancellationToken)

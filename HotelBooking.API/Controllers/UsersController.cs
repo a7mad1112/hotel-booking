@@ -5,6 +5,7 @@ using HotelBooking.Application.Features.Users.GetUsers;
 using HotelBooking.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HotelBooking.API.Extensions;
 
 namespace HotelBooking.API.Controllers;
 
@@ -27,9 +28,7 @@ public class UsersController : ControllerBase
     [HttpGet("history")]
     public async Task<ActionResult<List<GetBookingHistoryResponse>>> GetHistory(CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }

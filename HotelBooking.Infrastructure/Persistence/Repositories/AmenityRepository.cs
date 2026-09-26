@@ -1,6 +1,7 @@
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Amenities;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
@@ -19,16 +20,10 @@ public sealed class AmenityRepository : Repository<Amenity>, IAmenityRepository,
         var query = DbContext.Amenities
             .AsNoTracking();
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query
+        return await query
             .OrderBy(x => x.Name)
             .ThenBy(x => x.Id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return (items, totalCount);
+            .ToPagedListAsync(page, pageSize, cancellationToken);
     }
 
     public async Task<bool> ExistsByNameAsync(string name, int? excludeId, CancellationToken cancellationToken)

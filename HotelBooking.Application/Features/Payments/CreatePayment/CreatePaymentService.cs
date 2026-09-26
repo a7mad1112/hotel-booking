@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Payments;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Bookings;
@@ -12,7 +12,7 @@ public sealed class CreatePaymentService : IScopedService
 {
     private readonly IBookingRepository _bookingRepository;
     private readonly IPaymentRepository _paymentRepository;
-    private readonly IPaymentProvider _paymentProvider;
+    private readonly IPaymentGatewayFactory _gatewayFactory;
     private readonly ILogger<CreatePaymentService> _logger;
 
     public CreatePaymentService(
@@ -20,10 +20,23 @@ public sealed class CreatePaymentService : IScopedService
         IPaymentRepository paymentRepository,
         IPaymentProvider paymentProvider,
         ILogger<CreatePaymentService> logger)
+        : this(
+            bookingRepository,
+            paymentRepository,
+            new SingleGatewayFactory(new SingleGatewayWrapper(paymentProvider)),
+            logger)
+    {
+    }
+
+    public CreatePaymentService(
+        IBookingRepository bookingRepository,
+        IPaymentRepository paymentRepository,
+        IPaymentGatewayFactory gatewayFactory,
+        ILogger<CreatePaymentService> logger)
     {
         _bookingRepository = bookingRepository;
         _paymentRepository = paymentRepository;
-        _paymentProvider = paymentProvider;
+        _gatewayFactory = gatewayFactory;
         _logger = logger;
     }
 
@@ -33,7 +46,8 @@ public sealed class CreatePaymentService : IScopedService
         string idempotencyKey,
         string successUrl,
         string cancelUrl,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? provider = null)
     {
         _logger.LogInformation("Creating payment checkout for BookingId {BookingId}, UserId {UserId}",
             bookingId,
@@ -107,7 +121,18 @@ public sealed class CreatePaymentService : IScopedService
             return ResultOfT<CreatePaymentResponse>.Failure("A payment already exists for this booking.");
         }
 
-        var checkoutResult = await _paymentProvider.CreateCheckoutSessionAsync(
+        IPaymentGateway gateway;
+        try
+        {
+            gateway = _gatewayFactory.GetGateway(provider);
+        }
+        catch (NotSupportedException ex)
+        {
+            _logger.LogWarning("Payment creation rejected: {Message}", ex.Message);
+            return ResultOfT<CreatePaymentResponse>.Failure(ex.Message);
+        }
+
+        var checkoutResult = await gateway.CreateCheckoutSessionAsync(
                 new PaymentCheckoutRequest
                 {
                     BookingId = booking.Id,
@@ -125,7 +150,7 @@ public sealed class CreatePaymentService : IScopedService
         var payment = new Payment
         {
             BookingId = booking.Id,
-            Provider = _paymentProvider.Name,
+            Provider = gateway.ProviderName,
             TransactionId = checkoutResult.TransactionId,
             PaymentIntentId = checkoutResult.PaymentIntentId,
             IdempotencyKey = idempotencyKey,
@@ -160,5 +185,36 @@ public sealed class CreatePaymentService : IScopedService
             Status = payment.Status,
             CheckoutUrl = payment.CheckoutUrl
         };
+    }
+
+    private sealed class SingleGatewayFactory : IPaymentGatewayFactory
+    {
+        private readonly IPaymentGateway _gateway;
+
+        public SingleGatewayFactory(IPaymentGateway gateway)
+        {
+            _gateway = gateway;
+        }
+
+        public IPaymentGateway GetGateway(string? providerName = null) => _gateway;
+
+        public IReadOnlyCollection<string> GetSupportedProviders() => [_gateway.ProviderName];
+    }
+
+    private sealed class SingleGatewayWrapper : IPaymentGateway
+    {
+        private readonly IPaymentProvider _provider;
+
+        public SingleGatewayWrapper(IPaymentProvider provider)
+        {
+            _provider = provider;
+        }
+
+        public string ProviderName => _provider.Name;
+
+        public Task<PaymentCheckoutResult> CreateCheckoutSessionAsync(
+            PaymentCheckoutRequest request,
+            CancellationToken cancellationToken) =>
+            _provider.CreateCheckoutSessionAsync(request, cancellationToken);
     }
 }

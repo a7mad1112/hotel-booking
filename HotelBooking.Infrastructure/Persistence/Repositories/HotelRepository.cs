@@ -1,8 +1,9 @@
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Hotels;
 using HotelBooking.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using HotelBooking.Domain.Enums;
+using HotelBooking.Infrastructure.Persistence.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooking.Infrastructure.Persistence.Repositories;
 
@@ -34,19 +35,11 @@ public sealed class HotelRepository
                                      EF.Functions.ILike(x.Location, $"%{trimmed}%"));
         }
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items =
-            await query
-                .OrderBy(x => x.Name)
-                .ThenBy(x => x.City.Name)
-                .ThenBy(x => x.Id)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync(cancellationToken);
-
-
-        return (items, totalCount);
+        return await query
+            .OrderBy(x => x.Name)
+            .ThenBy(x => x.City.Name)
+            .ThenBy(x => x.Id)
+            .ToPagedListAsync(page, pageSize, cancellationToken);
     }
 
 

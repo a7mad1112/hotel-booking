@@ -1,6 +1,7 @@
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Rooms;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -30,16 +31,10 @@ public sealed class RoomRepository : Repository<Room>, IRoomRepository, IScopedS
                                      EF.Functions.ILike(x.Hotel.Name, $"%{trimmed}%"));
         }
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query
+        return await query
             .OrderBy(x => x.RoomNumber)
             .ThenBy(x => x.Id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        return (items, totalCount);
+            .ToPagedListAsync(page, pageSize, cancellationToken);
     }
 
     public async Task<Room?> GetDetailsByIdAsync(int id, CancellationToken cancellationToken)

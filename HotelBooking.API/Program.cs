@@ -3,8 +3,10 @@ using Elastic.Ingest.Elasticsearch.DataStreams;
 using HotelBooking.API.Authorization;
 using HotelBooking.API.Extensions;
 using HotelBooking.API.Middleware;
+using HotelBooking.API.Services;
 using HotelBooking.API.Swagger;
 using HotelBooking.Application;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Infrastructure;
 using Elastic.Serilog.Sinks;
 using HotelBooking.Domain.Entities;
@@ -61,6 +63,12 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddValidation();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services
     .AddControllers(options => { options.Filters.Add<FluentValidationFilter>(); })
@@ -140,7 +148,7 @@ app.UseSerilogRequestLogging(options =>
     };
 });
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {

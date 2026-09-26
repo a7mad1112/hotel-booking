@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Pagination;
 
 namespace HotelBooking.Application.Features.Search.Hotels;
@@ -23,12 +23,6 @@ public sealed class SearchHotelsService : IScopedService
             pagination.PageSize,
             cancellationToken);
 
-        return new PagedResult<SearchHotelsResponse>
-        {
-            Items = result.Items,
-            Page = pagination.Page,
-            PageSize = pagination.PageSize,
-            TotalCount = result.TotalCount
-        };
+        return PagedResult<SearchHotelsResponse>.Create(result.Items, result.TotalCount, pagination);
     }
 }

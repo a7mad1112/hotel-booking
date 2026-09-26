@@ -26,21 +26,16 @@ public sealed class GetUsersService : IScopedService
             role,
             cancellationToken);
 
-        return new PagedResult<GetUsersResponse>
-        {
-            Items = result.Items
-                .Select(u => new GetUsersResponse
-                {
-                    Id = u.Id,
-                    Email = u.Email,
-                    Role = u.Role,
-                    CreatedAt = u.CreatedAt
-                })
-                .ToList(),
+        var items = result.Items
+            .Select(u => new GetUsersResponse
+            {
+                Id = u.Id,
+                Email = u.Email,
+                Role = u.Role,
+                CreatedAt = u.CreatedAt
+            })
+            .ToList();
 
-            Page = request.Page,
-            PageSize = request.PageSize,
-            TotalCount = result.TotalCount
-        };
+        return PagedResult<GetUsersResponse>.Create(items, result.TotalCount, request);
     }
 }

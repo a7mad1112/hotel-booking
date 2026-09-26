@@ -23,24 +23,19 @@ public sealed class GetHotelReviewsService : IScopedService
             request.PageSize,
             cancellationToken);
 
-        return new PagedResult<GetHotelReviewsResponse>
-        {
-            Items = result.Items
-                .Select(review => new GetHotelReviewsResponse
-                {
-                    Id = review.Id,
-                    UserId = review.UserId,
-                    UserEmail = review.User?.Email ?? string.Empty,
-                    HotelId = review.HotelId,
-                    Rating = review.Rating,
-                    Comment = review.Comment,
-                    CreatedAt = review.CreatedAt
-                })
-                .ToList(),
+        var items = result.Items
+            .Select(review => new GetHotelReviewsResponse
+            {
+                Id = review.Id,
+                UserId = review.UserId,
+                UserEmail = review.User?.Email ?? string.Empty,
+                HotelId = review.HotelId,
+                Rating = review.Rating,
+                Comment = review.Comment,
+                CreatedAt = review.CreatedAt
+            })
+            .ToList();
 
-            Page = request.Page,
-            PageSize = request.PageSize,
-            TotalCount = result.TotalCount
-        };
+        return PagedResult<GetHotelReviewsResponse>.Create(items, result.TotalCount, request);
     }
 }

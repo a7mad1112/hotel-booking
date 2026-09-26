@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using HotelBooking.API.Extensions;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Reviews.CreateReview;
 using HotelBooking.Application.Features.Reviews.DeleteReview;
@@ -53,10 +54,7 @@ public class ReviewsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -69,8 +67,7 @@ public class ReviewsController : ControllerBase
         CreateReviewRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
@@ -83,26 +80,7 @@ public class ReviewsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Hotel not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "Only guests who have booked this hotel can submit a review.")
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, new
-                {
-                    message = result.Error
-                });
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return CreatedAtAction(
@@ -118,13 +96,12 @@ public class ReviewsController : ControllerBase
         UpdateReviewRequest request,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+        var isAdmin = User.IsAdmin();
 
         var result = await _updateReviewService.UpdateAsync(
             id,
@@ -135,23 +112,7 @@ public class ReviewsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Review not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to update this review.")
-            {
-                return Forbid();
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -163,13 +124,12 @@ public class ReviewsController : ControllerBase
         int id,
         CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdClaim, out var currentUserId))
+        if (!User.TryGetUserId(out var currentUserId))
         {
             return Unauthorized();
         }
 
-        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+        var isAdmin = User.IsAdmin();
 
         var result = await _deleteReviewService.DeleteAsync(
             id,
@@ -179,23 +139,7 @@ public class ReviewsController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Review not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "You are not allowed to delete this review.")
-            {
-                return Forbid();
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return NoContent();

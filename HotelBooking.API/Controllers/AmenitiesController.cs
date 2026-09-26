@@ -1,4 +1,5 @@
 using HotelBooking.API.Authorization;
+using HotelBooking.API.Extensions;
 using HotelBooking.Application.Common.Pagination;
 using HotelBooking.Application.Features.Amenities.CreateAmenity;
 using HotelBooking.Application.Features.Amenities.DeleteAmenity;
@@ -52,10 +53,7 @@ public class AmenitiesController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return NotFound(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -71,10 +69,7 @@ public class AmenitiesController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return CreatedAtAction(
@@ -94,18 +89,7 @@ public class AmenitiesController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Amenity not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            return Conflict(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return Ok(result.Value);
@@ -121,26 +105,7 @@ public class AmenitiesController : ControllerBase
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Amenity not found.")
-            {
-                return NotFound(new
-                {
-                    message = result.Error
-                });
-            }
-
-            if (result.Error == "Cannot delete an amenity that is assigned to hotels.")
-            {
-                return Conflict(new
-                {
-                    message = result.Error
-                });
-            }
-
-            return BadRequest(new
-            {
-                message = result.Error
-            });
+            return result.ToErrorResult();
         }
 
         return NoContent();

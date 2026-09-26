@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Hotels;
 
@@ -7,11 +7,24 @@ namespace HotelBooking.Application.Features.Hotels.UpdateHotel;
 public sealed class UpdateHotelService : IScopedService
 {
     private readonly IHotelRepository _repository;
+    private readonly ICurrentUserService? _currentUserService;
 
     public UpdateHotelService(
-        IHotelRepository repository)
+        IHotelRepository repository,
+        ICurrentUserService? currentUserService = null)
     {
         _repository = repository;
+        _currentUserService = currentUserService;
+    }
+
+    public Task<ResultOfT<UpdateHotelResponse>> UpdateAsync(
+        int id,
+        UpdateHotelRequest request,
+        CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService?.UserId ?? 0;
+        var isAdmin = _currentUserService?.IsAdmin ?? false;
+        return UpdateAsync(id, request, currentUserId, isAdmin, cancellationToken);
     }
 
     public async Task<ResultOfT<UpdateHotelResponse>> UpdateAsync(
@@ -28,13 +41,13 @@ public sealed class UpdateHotelService : IScopedService
 
         if (hotel is null)
         {
-            return ResultOfT<UpdateHotelResponse>.Failure(
+            return ResultOfT<UpdateHotelResponse>.NotFound(
                 "Hotel not found.");
         }
 
         if (!isAdmin && hotel.OwnerId != currentUserId)
         {
-            return ResultOfT<UpdateHotelResponse>.Failure(
+            return ResultOfT<UpdateHotelResponse>.Forbidden(
                 "You are not allowed to update this hotel.");
         }
 
@@ -45,7 +58,7 @@ public sealed class UpdateHotelService : IScopedService
 
         if (!cityExists)
         {
-            return ResultOfT<UpdateHotelResponse>.Failure(
+            return ResultOfT<UpdateHotelResponse>.Validation(
                 "City not found.");
         }
 
