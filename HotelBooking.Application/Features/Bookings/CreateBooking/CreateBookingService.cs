@@ -1,5 +1,6 @@
 using HotelBooking.Application.Common.Exceptions;
 using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Pricing;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Bookings;
 using HotelBooking.Application.Features.Deals;
@@ -16,17 +17,29 @@ public sealed class CreateBookingService : IScopedService
     private readonly IRoomRepository _roomRepository;
     private readonly IDealRepository _dealRepository;
     private readonly ILogger<CreateBookingService> _logger;
+    private readonly IPricingCalculator _pricingCalculator;
 
     public CreateBookingService(
         IBookingRepository bookingRepository,
         IRoomRepository roomRepository,
         IDealRepository dealRepository,
         ILogger<CreateBookingService> logger)
+        : this(bookingRepository, roomRepository, dealRepository, logger, new PricingCalculator())
+    {
+    }
+
+    public CreateBookingService(
+        IBookingRepository bookingRepository,
+        IRoomRepository roomRepository,
+        IDealRepository dealRepository,
+        ILogger<CreateBookingService> logger,
+        IPricingCalculator pricingCalculator)
     {
         _bookingRepository = bookingRepository;
         _roomRepository = roomRepository;
         _dealRepository = dealRepository;
         _logger = logger;
+        _pricingCalculator = pricingCalculator;
     }
 
     public async Task<ResultOfT<CreateBookingResponse>> CreateAsync(
@@ -77,29 +90,25 @@ public sealed class CreateBookingService : IScopedService
             return ResultOfT<CreateBookingResponse>.Failure("Room is not available for the selected dates.");
         }
 
-        var nights = (request.CheckOutDate.Date - request.CheckInDate.Date).Days;
-
-        var subtotal = room.PricePerNight * nights;
-
         var deal = await _dealRepository.GetApplicableDealAsync(
             room.HotelId,
             request.CheckInDate,
             request.CheckOutDate,
             cancellationToken);
 
-        var discountAmount = 0m;
-
         if (deal is not null)
         {
-            discountAmount = subtotal * deal.DiscountPercentage / 100m;
-
             _logger.LogInformation(
                 "Deal applied to booking. HotelId {HotelId}, DiscountPercentage {DiscountPercentage}",
                 room.HotelId,
                 deal.DiscountPercentage);
         }
 
-        var totalPrice = subtotal - discountAmount;
+        var pricing = _pricingCalculator.CalculatePrice(
+            room.PricePerNight,
+            request.CheckInDate,
+            request.CheckOutDate,
+            deal?.DiscountPercentage);
 
         var booking = new Booking
         {
@@ -107,7 +116,7 @@ public sealed class CreateBookingService : IScopedService
             RoomId = room.Id,
             CheckInDate = request.CheckInDate,
             CheckOutDate = request.CheckOutDate,
-            TotalPrice = totalPrice,
+            TotalPrice = pricing.TotalPrice,
             Status = BookingStatus.Pending,
             SpecialRequests = string.IsNullOrWhiteSpace(request.SpecialRequests)
                 ? null
@@ -147,16 +156,15 @@ public sealed class CreateBookingService : IScopedService
                 CheckInDate = booking.CheckInDate,
                 CheckOutDate = booking.CheckOutDate,
 
-                Nights = nights,
+                Nights = pricing.Nights,
 
-                PricePerNight = room.PricePerNight,
+                PricePerNight = pricing.PricePerNight,
 
-                Subtotal = subtotal,
+                Subtotal = pricing.Subtotal,
 
-                DiscountPercentage =
-                    deal?.DiscountPercentage,
+                DiscountPercentage = pricing.DiscountPercentage,
 
-                DiscountAmount = discountAmount,
+                DiscountAmount = pricing.DiscountAmount,
 
                 TotalPrice = booking.TotalPrice,
 
