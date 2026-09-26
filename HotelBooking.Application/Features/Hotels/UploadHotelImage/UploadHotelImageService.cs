@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Images;
+using HotelBooking.Application.Common.Images;
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Domain.Entities;
@@ -10,15 +10,28 @@ public sealed class UploadHotelImageService : IScopedService
     private readonly IHotelRepository _hotelRepository;
     private readonly IRepository<HotelImage> _hotelImageRepository;
     private readonly IImageService _imageService;
+    private readonly ICurrentUserService? _currentUserService;
 
     public UploadHotelImageService(
         IHotelRepository hotelRepository,
         IRepository<HotelImage> hotelImageRepository,
-        IImageService imageService)
+        IImageService imageService,
+        ICurrentUserService? currentUserService = null)
     {
         _hotelRepository = hotelRepository;
         _hotelImageRepository = hotelImageRepository;
         _imageService = imageService;
+        _currentUserService = currentUserService;
+    }
+
+    public Task<ResultOfT<UploadHotelImageResponse>> UploadAsync(
+        int hotelId,
+        ImageUpload image,
+        CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService?.UserId ?? 0;
+        var isAdmin = _currentUserService?.IsAdmin ?? false;
+        return UploadAsync(hotelId, image, currentUserId, isAdmin, cancellationToken);
     }
 
     public async Task<ResultOfT<UploadHotelImageResponse>> UploadAsync(

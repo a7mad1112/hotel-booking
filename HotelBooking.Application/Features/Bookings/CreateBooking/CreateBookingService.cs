@@ -18,13 +18,14 @@ public sealed class CreateBookingService : IScopedService
     private readonly IDealRepository _dealRepository;
     private readonly ILogger<CreateBookingService> _logger;
     private readonly IPricingCalculator _pricingCalculator;
+    private readonly ICurrentUserService? _currentUserService;
 
     public CreateBookingService(
         IBookingRepository bookingRepository,
         IRoomRepository roomRepository,
         IDealRepository dealRepository,
         ILogger<CreateBookingService> logger)
-        : this(bookingRepository, roomRepository, dealRepository, logger, new PricingCalculator())
+        : this(bookingRepository, roomRepository, dealRepository, logger, new PricingCalculator(), null)
     {
     }
 
@@ -34,12 +35,32 @@ public sealed class CreateBookingService : IScopedService
         IDealRepository dealRepository,
         ILogger<CreateBookingService> logger,
         IPricingCalculator pricingCalculator)
+        : this(bookingRepository, roomRepository, dealRepository, logger, pricingCalculator, null)
+    {
+    }
+
+    public CreateBookingService(
+        IBookingRepository bookingRepository,
+        IRoomRepository roomRepository,
+        IDealRepository dealRepository,
+        ILogger<CreateBookingService> logger,
+        IPricingCalculator pricingCalculator,
+        ICurrentUserService? currentUserService)
     {
         _bookingRepository = bookingRepository;
         _roomRepository = roomRepository;
         _dealRepository = dealRepository;
         _logger = logger;
         _pricingCalculator = pricingCalculator;
+        _currentUserService = currentUserService;
+    }
+
+    public Task<ResultOfT<CreateBookingResponse>> CreateAsync(
+        CreateBookingRequest request,
+        CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService?.UserId ?? 0;
+        return CreateAsync(request, currentUserId, cancellationToken);
     }
 
     public async Task<ResultOfT<CreateBookingResponse>> CreateAsync(

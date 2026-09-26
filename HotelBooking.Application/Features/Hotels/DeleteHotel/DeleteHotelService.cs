@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Interfaces;
+using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Hotels;
 
@@ -7,11 +7,21 @@ namespace HotelBooking.Application.Features.Hotels.DeleteHotel;
 public sealed class DeleteHotelService : IScopedService
 {
     private readonly IHotelRepository _repository;
+    private readonly ICurrentUserService? _currentUserService;
 
     public DeleteHotelService(
-        IHotelRepository repository)
+        IHotelRepository repository,
+        ICurrentUserService? currentUserService = null)
     {
         _repository = repository;
+        _currentUserService = currentUserService;
+    }
+
+    public Task<Result> DeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService?.UserId ?? 0;
+        var isAdmin = _currentUserService?.IsAdmin ?? false;
+        return DeleteAsync(id, currentUserId, isAdmin, cancellationToken);
     }
 
     public async Task<Result> DeleteAsync(int id, int currentUserId, bool isAdmin, CancellationToken cancellationToken)

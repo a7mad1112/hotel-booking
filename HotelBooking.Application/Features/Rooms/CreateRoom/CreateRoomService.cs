@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Exceptions;
+using HotelBooking.Application.Common.Exceptions;
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Hotels;
@@ -10,11 +10,25 @@ public sealed class CreateRoomService : IScopedService
 {
     private readonly IRoomRepository _repository;
     private readonly IHotelRepository _hotelRepository;
+    private readonly ICurrentUserService? _currentUserService;
 
-    public CreateRoomService(IRoomRepository repository, IHotelRepository hotelRepository)
+    public CreateRoomService(
+        IRoomRepository repository,
+        IHotelRepository hotelRepository,
+        ICurrentUserService? currentUserService = null)
     {
         _repository = repository;
         _hotelRepository = hotelRepository;
+        _currentUserService = currentUserService;
+    }
+
+    public Task<ResultOfT<CreateRoomResponse>> CreateAsync(
+        CreateRoomRequest request,
+        CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService?.UserId ?? 0;
+        var isAdmin = _currentUserService?.IsAdmin ?? false;
+        return CreateAsync(request, currentUserId, isAdmin, cancellationToken);
     }
 
     public async Task<ResultOfT<CreateRoomResponse>> CreateAsync(
