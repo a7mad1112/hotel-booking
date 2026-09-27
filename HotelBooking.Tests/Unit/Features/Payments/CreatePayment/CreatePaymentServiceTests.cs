@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Payments;
+using HotelBooking.Application.Common.Payments;
 using HotelBooking.Application.Features.Bookings;
 using HotelBooking.Application.Features.Payments;
 using HotelBooking.Application.Features.Payments.CreatePayment;
@@ -17,11 +17,16 @@ public class CreatePaymentServiceTests
         // Arrange
         var bookingRepository = new Mock<IBookingRepository>();
         var paymentRepository = new Mock<IPaymentRepository>();
-        var paymentProvider = new Mock<IPaymentProvider>();
+        var paymentGateway = new Mock<IPaymentGateway>();
+        var gatewayFactory = new Mock<IPaymentGatewayFactory>();
 
-        paymentProvider
-            .Setup(x => x.Name)
+        paymentGateway
+            .Setup(x => x.ProviderName)
             .Returns("Stripe");
+
+        gatewayFactory
+            .Setup(x => x.GetGateway(It.IsAny<string?>()))
+            .Returns(paymentGateway.Object);
 
         var booking = new Booking
         {
@@ -73,7 +78,7 @@ public class CreatePaymentServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((Payment?)null);
 
-        paymentProvider
+        paymentGateway
             .Setup(x => x.CreateCheckoutSessionAsync(
                 It.IsAny<PaymentCheckoutRequest>(),
                 It.IsAny<CancellationToken>()))
@@ -88,7 +93,7 @@ public class CreatePaymentServiceTests
         var service = new CreatePaymentService(
             bookingRepository.Object,
             paymentRepository.Object,
-            paymentProvider.Object,
+            gatewayFactory.Object,
             NullLogger<CreatePaymentService>.Instance);
 
         // Act
@@ -116,7 +121,7 @@ public class CreatePaymentServiceTests
             "https://checkout.stripe.com/test",
             result.Value.CheckoutUrl);
 
-        paymentProvider.Verify(
+        paymentGateway.Verify(
             x => x.CreateCheckoutSessionAsync(
                 It.Is<PaymentCheckoutRequest>(request =>
                     request.BookingId == 1 &&
@@ -185,10 +190,12 @@ public class CreatePaymentServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingPayment);
 
+        var gatewayFactory = new Mock<IPaymentGatewayFactory>();
+
         var service = new CreatePaymentService(
             bookingRepository.Object,
             paymentRepository.Object,
-            paymentProvider.Object,
+            gatewayFactory.Object,
             NullLogger<CreatePaymentService>.Instance);
 
         // Act

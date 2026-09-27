@@ -18,19 +18,6 @@ public sealed class CreatePaymentService : IScopedService
     public CreatePaymentService(
         IBookingRepository bookingRepository,
         IPaymentRepository paymentRepository,
-        IPaymentProvider paymentProvider,
-        ILogger<CreatePaymentService> logger)
-        : this(
-            bookingRepository,
-            paymentRepository,
-            new SingleGatewayFactory(new SingleGatewayWrapper(paymentProvider)),
-            logger)
-    {
-    }
-
-    public CreatePaymentService(
-        IBookingRepository bookingRepository,
-        IPaymentRepository paymentRepository,
         IPaymentGatewayFactory gatewayFactory,
         ILogger<CreatePaymentService> logger)
     {
@@ -185,36 +172,5 @@ public sealed class CreatePaymentService : IScopedService
             Status = payment.Status,
             CheckoutUrl = payment.CheckoutUrl
         };
-    }
-
-    private sealed class SingleGatewayFactory : IPaymentGatewayFactory
-    {
-        private readonly IPaymentGateway _gateway;
-
-        public SingleGatewayFactory(IPaymentGateway gateway)
-        {
-            _gateway = gateway;
-        }
-
-        public IPaymentGateway GetGateway(string? providerName = null) => _gateway;
-
-        public IReadOnlyCollection<string> GetSupportedProviders() => [_gateway.ProviderName];
-    }
-
-    private sealed class SingleGatewayWrapper : IPaymentGateway
-    {
-        private readonly IPaymentProvider _provider;
-
-        public SingleGatewayWrapper(IPaymentProvider provider)
-        {
-            _provider = provider;
-        }
-
-        public string ProviderName => _provider.Name;
-
-        public Task<PaymentCheckoutResult> CreateCheckoutSessionAsync(
-            PaymentCheckoutRequest request,
-            CancellationToken cancellationToken) =>
-            _provider.CreateCheckoutSessionAsync(request, cancellationToken);
     }
 }

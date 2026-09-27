@@ -88,4 +88,12 @@ public sealed class RoomRepository : Repository<Room>, IRoomRepository, IScopedS
         return await DbContext.Rooms
             .AnyAsync(x => x.HotelId == hotelId && x.RoomNumber == roomNumber, cancellationToken);
     }
+
+    public async Task<List<string>> GetImagePublicIdsAsync(int roomId, CancellationToken cancellationToken)
+    {
+        return await DbContext.RoomImages
+            .Where(x => x.RoomId == roomId)
+            .Select(x => x.PublicId)
+            .ToListAsync(cancellationToken);
+    }
 }

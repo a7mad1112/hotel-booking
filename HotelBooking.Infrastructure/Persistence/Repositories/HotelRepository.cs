@@ -79,4 +79,12 @@ public sealed class HotelRepository
                    x => x.HotelId == hotelId, cancellationToken) ||
                await DbContext.Reviews.AnyAsync(x => x.HotelId == hotelId, cancellationToken);
     }
+
+    public async Task<List<string>> GetImagePublicIdsAsync(int hotelId, CancellationToken cancellationToken)
+    {
+        return await DbContext.HotelImages
+            .Where(x => x.HotelId == hotelId)
+            .Select(x => x.PublicId)
+            .ToListAsync(cancellationToken);
+    }
 }

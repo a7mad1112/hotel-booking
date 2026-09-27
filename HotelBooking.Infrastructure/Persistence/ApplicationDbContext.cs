@@ -22,6 +22,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Deal> Deals { get; set; }
     public DbSet<Amenity> Amenities { get; set; }
     public DbSet<HotelAmenity> HotelAmenities { get; set; }
+    public DbSet<ImageDeletionOutbox> ImageDeletionOutboxes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

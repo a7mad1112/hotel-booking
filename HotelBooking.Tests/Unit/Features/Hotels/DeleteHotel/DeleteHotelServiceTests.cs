@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Features.Hotels;
+using HotelBooking.Application.Features.Hotels;
 using HotelBooking.Application.Features.Hotels.DeleteHotel;
 using HotelBooking.Domain.Entities;
 using Moq;
@@ -131,5 +131,58 @@ public class DeleteHotelServiceTests
             x => x.SaveChangesAsync(
                 It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_HotelWithImages_EnqueuesImagePublicIdsToOutbox()
+    {
+        var repository = new Mock<IHotelRepository>();
+        var outboxRepository = new Mock<HotelBooking.Application.Common.Images.IImageDeletionOutboxRepository>();
+
+        var hotel = new Hotel
+        {
+            Id = 1,
+            OwnerId = 10,
+            Name = "Grand Hotel"
+        };
+
+        var publicIds = new List<string> { "hotels/hotel_1", "hotels/hotel_2" };
+
+        repository
+            .Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(hotel);
+
+        repository
+            .Setup(x => x.HasDependenciesAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        repository
+            .Setup(x => x.GetImagePublicIdsAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(publicIds);
+
+        var service = new DeleteHotelService(
+            repository.Object,
+            currentUserService: null,
+            outboxRepository: outboxRepository.Object);
+
+        var result = await service.DeleteAsync(
+            1,
+            currentUserId: 10,
+            isAdmin: false,
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+
+        outboxRepository.Verify(
+            x => x.EnqueueRangeAsync(publicIds, It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        repository.Verify(
+            x => x.Delete(hotel),
+            Times.Once);
+
+        repository.Verify(
+            x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 }
