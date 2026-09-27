@@ -1,4 +1,4 @@
-﻿using HotelBooking.Application.Common.Images;
+using HotelBooking.Application.Common.Images;
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Hotels;
@@ -11,15 +11,18 @@ public sealed class DeleteHotelImageService : IScopedService
     private readonly IHotelRepository _hotelRepository;
     private readonly IRepository<HotelImage> _hotelImageRepository;
     private readonly IImageService _imageService;
+    private readonly IImageDeletionOutboxRepository? _outboxRepository;
 
     public DeleteHotelImageService(
         IHotelRepository hotelRepository,
         IRepository<HotelImage> hotelImageRepository,
-        IImageService imageService)
+        IImageService imageService,
+        IImageDeletionOutboxRepository? outboxRepository = null)
     {
         _hotelRepository = hotelRepository;
         _hotelImageRepository = hotelImageRepository;
         _imageService = imageService;
+        _outboxRepository = outboxRepository;
     }
 
     public async Task<Result> DeleteAsync(
@@ -48,11 +51,23 @@ public sealed class DeleteHotelImageService : IScopedService
             return Result.Failure("Hotel image not found.");
         }
 
+        if (_outboxRepository is not null)
+        {
+            await _outboxRepository.EnqueueRangeAsync([image.PublicId], cancellationToken);
+        }
+
         _hotelImageRepository.Delete(image);
 
         await _hotelImageRepository.SaveChangesAsync(cancellationToken);
 
-        await _imageService.DeleteAsync(image.PublicId, cancellationToken);
+        try
+        {
+            await _imageService.DeleteAsync(image.PublicId, cancellationToken);
+        }
+        catch
+        {
+            // If direct deletion fails, background outbox worker will retry and clean it up.
+        }
 
         return Result.Success();
     }

@@ -18,4 +18,6 @@ public interface IHotelRepository : IRepository<Hotel>
     Task<Hotel?> GetDetailsByIdAsync(int id, CancellationToken cancellationToken);
 
     Task<bool> HasDependenciesAsync(int hotelId, CancellationToken cancellationToken);
+
+    Task<List<string>> GetImagePublicIdsAsync(int hotelId, CancellationToken cancellationToken);
 }

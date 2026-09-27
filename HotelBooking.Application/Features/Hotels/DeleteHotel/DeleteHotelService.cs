@@ -1,3 +1,4 @@
+using HotelBooking.Application.Common.Images;
 using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Common.Results;
 using HotelBooking.Application.Features.Hotels;
@@ -8,13 +9,16 @@ public sealed class DeleteHotelService : IScopedService
 {
     private readonly IHotelRepository _repository;
     private readonly ICurrentUserService? _currentUserService;
+    private readonly IImageDeletionOutboxRepository? _outboxRepository;
 
     public DeleteHotelService(
         IHotelRepository repository,
-        ICurrentUserService? currentUserService = null)
+        ICurrentUserService? currentUserService = null,
+        IImageDeletionOutboxRepository? outboxRepository = null)
     {
         _repository = repository;
         _currentUserService = currentUserService;
+        _outboxRepository = outboxRepository;
     }
 
     public Task<Result> DeleteAsync(int id, CancellationToken cancellationToken)
@@ -44,6 +48,13 @@ public sealed class DeleteHotelService : IScopedService
         if (hasDependencies)
         {
             return Result.Failure("Cannot delete a hotel that has related data.");
+        }
+
+        var imagePublicIds = await _repository.GetImagePublicIdsAsync(id, cancellationToken);
+
+        if (_outboxRepository is not null && imagePublicIds.Count > 0)
+        {
+            await _outboxRepository.EnqueueRangeAsync(imagePublicIds, cancellationToken);
         }
 
         _repository.Delete(hotel);

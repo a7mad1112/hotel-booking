@@ -4,6 +4,7 @@ using HotelBooking.Application.Common.Interfaces;
 using HotelBooking.Application.Features.Authentication.Login;
 using HotelBooking.Application.Features.Authentication.Register;
 using HotelBooking.Application.Features.Cities;
+using HotelBooking.Infrastructure.BackgroundJobs;
 using HotelBooking.Infrastructure.Authentication;
 using HotelBooking.Infrastructure.ExternalServices.Cloudinary;
 using HotelBooking.Infrastructure.ExternalServices.Email;
@@ -22,6 +23,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddHostedService<ImageCleanupBackgroundService>();
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrWhiteSpace(connectionString))

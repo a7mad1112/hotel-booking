@@ -103,6 +103,7 @@ The project is structured according to **Clean Architecture** (Onion Architectur
 | **Inversion of Control (IoC)** | `ICurrentUserService`<br>`CurrentUserService` | **Decoupled User Identity**: Decouples application services from ASP.NET Core `HttpContext`. Eliminates manual extraction and parameter passing of `currentUserId` and `isAdmin` across 20+ service methods. |
 | **Result Pattern & Typed Errors** | `Result`<br>`ResultOfT<T>`<br>`Error`<br>`ErrorType` | **Resilient Error Modeling**: Replaces fragile string-matching (`if (result.Error == "Hotel not found.")`) with strongly-typed error categories (`NotFound`, `Conflict`, `Forbidden`, `Validation`, `Failure`), automatically mapped to HTTP status codes via `ResultExtensions.ToActionResult()`. |
 | **Specification / Repository Extension** | `ToPagedListAsync`<br>`PagedResult<T>.Create` | **DRY Pagination**: Centralizes pagination math (`CountAsync`, `Skip`, `Take`, `PageCount`) into an `IQueryable<T>` extension, eliminating duplicate pagination code across all repositories. |
+| **Transactional Outbox Pattern** | `ImageDeletionOutbox`<br>`IImageDeletionOutboxRepository`<br>`ImageCleanupBackgroundService` | **Reliable Third-Party Media Deletion**: Decouples database cascade deletion from external Cloudinary HTTP calls. When a hotel or room is deleted, image public IDs are committed to the outbox atomically, and cleaned up asynchronously with automated retries. |
 
 ---
 
@@ -317,6 +318,7 @@ erDiagram
 | `bookings` | Customer reservations for specific dates. | Date availability checks; tracked via `BookingStatus` (`Pending`, `Confirmed`, `Cancelled`, `Completed`). |
 | `payments` | Financial records of transactions via payment gateways. | Strict **1-to-1 relationship** with `bookings` (`booking_id` is unique). Enforces idempotent payment initiation via unique `idempotency_key`. |
 | `reviews` | Customer feedback and 1-5 star ratings. | Verified booking constraint ensures only guests who booked can review. |
+| `image_deletion_outbox` | Queue for background media deletion from Cloudinary. | Captures `public_id` on hotel/room cascade deletion; processed asynchronously with retry backoff. |
 
 ---
 

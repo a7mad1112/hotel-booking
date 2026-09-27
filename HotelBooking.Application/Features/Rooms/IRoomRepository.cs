@@ -24,4 +24,6 @@ public interface IRoomRepository : IRepository<Room>
     Task<Room?> GetForUpdateAsync(int id, CancellationToken cancellationToken);
 
     public Task<bool> RoomNumberExistsAsync(int hotelId, string roomNumber, CancellationToken cancellationToken);
+
+    Task<List<string>> GetImagePublicIdsAsync(int roomId, CancellationToken cancellationToken);
 }
